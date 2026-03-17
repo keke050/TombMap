@@ -1,0 +1,42 @@
+import { NextResponse } from 'next/server';
+import crypto from 'crypto';
+import { hasDatabase, query } from '../../../../../lib/db';
+import { readUserId } from '../../../../../lib/auth';
+import { readSegmentParam } from '../../../../../lib/nextParams';
+
+export const runtime = 'nodejs';
+
+export async function POST(
+  request: Request,
+  context: { params: Promise<{ id?: string | string[] }> }
+) {
+  if (!hasDatabase) {
+    return NextResponse.json({ error: '数据库未配置' }, { status: 503 });
+  }
+  const userId = await readUserId();
+  if (!userId) {
+    return NextResponse.json({ error: '未登录' }, { status: 401 });
+  }
+
+  const resolvedParams = await context.params;
+  const tombId = readSegmentParam(resolvedParams?.id);
+  if (!tombId) {
+    return NextResponse.json({ error: '缺少 id 参数' }, { status: 400 });
+  }
+
+  const existing = await query('SELECT 1 FROM public.checkins WHERE tomb_id = $1 AND user_id = $2 LIMIT 1', [tombId, userId]);
+  if (existing.rowCount) {
+    await query('DELETE FROM public.checkins WHERE tomb_id = $1 AND user_id = $2', [tombId, userId]);
+    const count = await query<{ count: string }>('SELECT COUNT(*)::text AS count FROM public.checkins WHERE tomb_id = $1', [
+      tombId
+    ]);
+    return NextResponse.json({ checkedIn: false, count: Number(count.rows[0]?.count ?? 0) });
+  }
+
+  const id = crypto.randomUUID();
+  await query('INSERT INTO public.checkins (id, tomb_id, user_id) VALUES ($1, $2, $3)', [id, tombId, userId]);
+  const count = await query<{ count: string }>('SELECT COUNT(*)::text AS count FROM public.checkins WHERE tomb_id = $1', [
+    tombId
+  ]);
+  return NextResponse.json({ checkedIn: true, count: Number(count.rows[0]?.count ?? 0) });
+}

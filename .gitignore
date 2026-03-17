@@ -1,0 +1,10 @@
+node_modules
+.next
+.env.local
+.env.production
+.env.restore
+data/raw
+.venv
+.npm-cache
+.DS_Store
+tsconfig.tsbuildinfo
