@@ -454,7 +454,7 @@ export default function MapShell() {
       params.set('near', `${nextNearby.lat},${nextNearby.lng}`);
       params.set('radius', String(nextRadius));
     }
-    const response = await fetch(`/api/tombs?${params.toString()}`);
+    const response = await fetch(`/api/tombs?${params.toString()}`, { cache: 'force-cache' });
     setIsSearching(false);
     if (!response.ok) return;
     const data = await response.json();
@@ -508,7 +508,7 @@ export default function MapShell() {
       params.set('limit', '240');
       if (onlyWithCoords) params.set('hasCoords', '1');
       if (includeExternal) params.set('includeExternal', '1');
-      const response = await fetch(`/api/tombs?${params.toString()}`);
+      const response = await fetch(`/api/tombs?${params.toString()}`, { cache: 'force-cache' });
       if (cancelled) return;
       if (!response.ok) return;
       const data = await response.json();

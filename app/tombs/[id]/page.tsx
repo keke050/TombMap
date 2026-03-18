@@ -9,6 +9,8 @@ import { buildImageQueries, buildSummaryQueries, inferPersonFromName } from '../
 import { getTombDetail, listRelatedTombs, recordTombSummary } from '../../../lib/data';
 import { readSegmentParam } from '../../../lib/nextParams';
 
+export const revalidate = 300;
+
 const levelLabel: Record<string, string> = {
   national: '国家级',
   provincial: '省级',

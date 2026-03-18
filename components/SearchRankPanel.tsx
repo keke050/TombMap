@@ -43,7 +43,10 @@ export default function SearchRankPanel({
     const load = async () => {
       setLoading(true);
       setError(null);
-      const response = await fetch(`/api/rank/search?limit=${effectiveLimit}`, { method: 'GET' }).catch(() => null);
+      const response = await fetch(`/api/rank/search?limit=${effectiveLimit}`, {
+        method: 'GET',
+        cache: 'force-cache'
+      }).catch(() => null);
       if (cancelled) return;
       if (!response?.ok) {
         let message = '排行加载失败';

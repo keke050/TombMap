@@ -63,7 +63,7 @@ export default function FamousTombCarousel() {
 
   const loadFeatured = useCallback(async (signal?: AbortSignal) => {
     try {
-      const response = await fetch('/api/featured?limit=24', { cache: 'no-store', signal });
+      const response = await fetch('/api/featured?limit=24', { cache: 'force-cache', signal });
       if (!response.ok) return null;
       const data = (await response.json()) as { tombs?: FeaturedTomb[] };
       const list = (data.tombs ?? []).filter((tomb) => Boolean(tomb?.id && tomb?.name && tomb?.coverUrl));

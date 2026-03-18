@@ -2915,6 +2915,10 @@ const RELATED_SCORE_LEVEL: Record<string, number> = {
   external: 1
 };
 
+const relatedTombCandidates = dedupeTombs(
+  seedTombs.map(normalizeTomb).filter((item) => qualityFilter(item))
+);
+
 const sharesPersonContext = (source: Tomb, candidate: Tomb) => {
   const sourceCandidates = buildPersonCandidates(source);
   if (!sourceCandidates.size) return false;
@@ -2974,9 +2978,7 @@ const buildRelatedScore = (source: Tomb, candidate: Tomb) => {
 
 export const listRelatedTombs = async (tomb: Tomb, limit = 6): Promise<Tomb[]> => {
   const normalizedSource = normalizeTomb(tomb);
-  const candidates = dedupeTombs(
-    seedTombs.map(normalizeTomb).filter((item) => qualityFilter(item))
-  );
+  const candidates = relatedTombCandidates;
 
   return candidates
     .map((candidate) => {
@@ -3008,34 +3010,24 @@ const buildDetailFromDatabaseInteractions = async (tomb: Tomb): Promise<TombDeta
   const images = buildSeedImages(normalized);
 
   const tombId = normalized.id;
-  const [likes, checkins, comments] = await Promise.all([
-    query<{ count: string }>('SELECT COUNT(*)::text AS count FROM public.likes WHERE tomb_id = $1', [tombId]),
-    query<{ count: string }>('SELECT COUNT(*)::text AS count FROM public.checkins WHERE tomb_id = $1', [tombId]),
-    query<{ id: string; content: string; created_at: string; user_label: string }>(
-      `SELECT comments.id, comments.content, comments.created_at, COALESCE(users.display_label, '游客') AS user_label
-       FROM public.comments
-       LEFT JOIN public.users ON users.id = comments.user_id
-       WHERE comments.tomb_id = $1
-       ORDER BY comments.created_at DESC
-       LIMIT 20`,
-      [tombId]
-    )
-  ]);
+  const statsResult = await query<{ likes: string; checkins: string; comments: string }>(
+    `SELECT
+      (SELECT COUNT(*)::text FROM public.likes WHERE tomb_id = $1) AS likes,
+      (SELECT COUNT(*)::text FROM public.checkins WHERE tomb_id = $1) AS checkins,
+      (SELECT COUNT(*)::text FROM public.comments WHERE tomb_id = $1) AS comments`,
+    [tombId]
+  );
+  const stats = statsResult.rows[0];
 
   return {
     ...normalized,
     images,
     stats: {
-      likes: Number(likes.rows[0]?.count ?? 0),
-      checkins: Number(checkins.rows[0]?.count ?? 0),
-      comments: Number(comments.rows.length)
+      likes: Number(stats?.likes ?? 0),
+      checkins: Number(stats?.checkins ?? 0),
+      comments: Number(stats?.comments ?? 0)
     },
-    commentList: comments.rows.map((row) => ({
-      id: row.id,
-      content: row.content,
-      createdAt: row.created_at,
-      userLabel: row.user_label
-    }))
+    commentList: []
   };
 };
 
@@ -3083,10 +3075,28 @@ const resolveMergedDatabaseDetailTomb = async (id: string, base: Tomb) => {
   return deduped.find((tomb) => tomb.id === id) ?? base;
 };
 
+const DETAIL_BASE_CACHE_TTL = 1000 * 60 * 10;
+const DETAIL_BASE_CACHE_MAX_ENTRIES = 200;
+const detailBaseCache = new Map<string, { ts: number; tomb: Tomb }>();
+
+const setDetailBaseCache = (id: string, tomb: Tomb) => {
+  detailBaseCache.set(id, { ts: Date.now(), tomb });
+  while (detailBaseCache.size > DETAIL_BASE_CACHE_MAX_ENTRIES) {
+    const firstKey = detailBaseCache.keys().next().value as string | undefined;
+    if (!firstKey) break;
+    detailBaseCache.delete(firstKey);
+  }
+};
+
 export const getTombDetail = async (id: string): Promise<TombDetail | null> => {
   const external = readExternalTombCache(id);
   if (external && !hasTombDatabase) {
     return hasDatabase ? buildDetailFromDatabaseInteractions(external) : buildDetailWithoutInteractions(external);
+  }
+
+  const cachedBase = detailBaseCache.get(id);
+  if (cachedBase && Date.now() - cachedBase.ts < DETAIL_BASE_CACHE_TTL) {
+    return hasDatabase ? buildDetailFromDatabaseInteractions(cachedBase.tomb) : buildDetailWithoutInteractions(cachedBase.tomb);
   }
 
   const tomb = hasTombDatabase
@@ -3111,6 +3121,9 @@ export const getTombDetail = async (id: string): Promise<TombDetail | null> => {
   const resolved = hasTombDatabase
     ? await resolveMergedDatabaseDetailTomb(id, normalized)
     : resolveMergedSeedDetailTomb(id, normalized);
+  if (hasTombDatabase) {
+    setDetailBaseCache(id, resolved);
+  }
 
   return hasDatabase ? buildDetailFromDatabaseInteractions(resolved) : buildDetailWithoutInteractions(resolved);
 };
