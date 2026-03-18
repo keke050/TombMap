@@ -1,5 +1,5 @@
 import type { Tomb } from './types';
-import { inferPersonFromName } from './utils';
+import { inferPersonFromName, isArtifactTombName } from './utils';
 
 export type CategorySlug = 'imperial' | 'generals' | 'ministers' | 'literati' | 'women' | 'martyrs';
 
@@ -76,15 +76,6 @@ const hasTombKeyword = (tomb: Tomb) =>
 
 const hasPersonAndTombKeyword = (tomb: Tomb) => Boolean(getPersonName(tomb)) && hasTombKeyword(tomb);
 
-const hasLikelyIndividualPersonTomb = (tomb: Tomb) => {
-  const personName = getPersonName(tomb);
-  if (!personName) return false;
-  const name = tomb.name?.trim() ?? '';
-  if (!name) return false;
-  if (/(墓葬群|墓群|墓地)$/.test(name)) return false;
-  return /(陵寝|帝陵|王陵|皇陵|陵墓|墓|陵|冢|坟|祠堂|祠)$/.test(name);
-};
-
 const normalizeNameForHeuristics = (value: string) =>
   value
     .replace(/（.*?）/g, '')
@@ -127,6 +118,7 @@ export const buildSearchText = (tomb: Tomb) =>
 export const isDisplayableTomb = (tomb: Tomb) => {
   const name = tomb.name?.trim() ?? '';
   if (!name) return false;
+  if (isArtifactTombName(name)) return false;
   if (/^(?:\.|@|{|})/.test(name)) return false;
   if (/mw-parser-output|hlist|navbox|font-size|padding-|margin-|display:|@media|border-|background|content:|skin-/i.test(name)) {
     return false;
@@ -225,6 +217,295 @@ const nonImperialPersonKeywords = [
   '志士',
   '殉国'
 ];
+
+const GENERAL_KEYWORDS = [
+  '将军',
+  '元帅',
+  '大将',
+  '上将',
+  '中将',
+  '少将',
+  '都督',
+  '武侯',
+  '武将',
+  '节度使',
+  '总兵',
+  '提督',
+  '都统',
+  '统帅',
+  '镇国',
+  '护国',
+  '骠骑',
+  '车骑',
+  '卫将军',
+  '开国元勋',
+  '开国功臣',
+  '勋臣'
+];
+
+const MINISTER_KEYWORDS = [
+  '丞相',
+  '宰相',
+  '相国',
+  '尚书',
+  '侍郎',
+  '御史',
+  '谏官',
+  '谏议',
+  '参政',
+  '参知',
+  '太师',
+  '太傅',
+  '太尉',
+  '首辅',
+  '阁老',
+  '刺史',
+  '巡抚',
+  '总督',
+  '知府',
+  '知州',
+  '布政使',
+  '按察使',
+  '贤臣',
+  '名相'
+];
+
+const LITERATI_KEYWORDS = [
+  '诗人',
+  '词人',
+  '文学家',
+  '思想家',
+  '哲学家',
+  '文人',
+  '名士',
+  '学者',
+  '史学',
+  '教育家',
+  '作家',
+  '文豪',
+  '诗圣',
+  '诗仙',
+  '诗鬼',
+  '诗佛',
+  '词宗',
+  '词圣',
+  '国学',
+  '儒学',
+  '书法家',
+  '画家',
+  '书画',
+  '书圣',
+  '画圣',
+  '大儒'
+];
+
+const LITERATI_TITLE_HINT_KEYWORDS = ['先生', '居士', '山人', '处士', '学士'];
+
+const NON_LITERATI_EXCLUSION_KEYWORDS = [
+  ...GENERAL_KEYWORDS,
+  ...MINISTER_KEYWORDS,
+  '烈士',
+  '英烈',
+  '革命',
+  '殉国',
+  '殉难',
+  '法师',
+  '禅师',
+  '高僧',
+  '和尚',
+  '僧人',
+  '住持',
+  '道士',
+  '真人',
+  '天师',
+  '上师',
+  '喇嘛',
+  '活佛'
+];
+
+const COMMON_PERSON_SURNAMES = new Set([
+  '赵',
+  '钱',
+  '孙',
+  '李',
+  '周',
+  '吴',
+  '郑',
+  '王',
+  '冯',
+  '陈',
+  '蒋',
+  '沈',
+  '韩',
+  '杨',
+  '朱',
+  '何',
+  '吕',
+  '张',
+  '孔',
+  '曹',
+  '严',
+  '华',
+  '金',
+  '魏',
+  '陶',
+  '姜',
+  '谢',
+  '邹',
+  '章',
+  '苏',
+  '潘',
+  '范',
+  '彭',
+  '郎',
+  '鲁',
+  '韦',
+  '马',
+  '苗',
+  '方',
+  '俞',
+  '任',
+  '袁',
+  '柳',
+  '鲍',
+  '史',
+  '唐',
+  '薛',
+  '雷',
+  '贺',
+  '倪',
+  '汤',
+  '滕',
+  '殷',
+  '罗',
+  '毕',
+  '郝',
+  '安',
+  '常',
+  '于',
+  '时',
+  '傅',
+  '齐',
+  '康',
+  '伍',
+  '余',
+  '顾',
+  '孟',
+  '黄',
+  '萧',
+  '尹',
+  '姚',
+  '邵',
+  '汪',
+  '毛',
+  '狄',
+  '成',
+  '戴',
+  '宋',
+  '庞',
+  '熊',
+  '纪',
+  '屈',
+  '项',
+  '董',
+  '梁',
+  '杜',
+  '贾',
+  '江',
+  '颜',
+  '郭',
+  '梅',
+  '林',
+  '钟',
+  '徐',
+  '骆',
+  '高',
+  '夏',
+  '蔡',
+  '田',
+  '樊',
+  '胡',
+  '霍',
+  '万',
+  '卢',
+  '莫',
+  '房',
+  '宗',
+  '丁',
+  '洪',
+  '包',
+  '左',
+  '石',
+  '崔',
+  '龚',
+  '程',
+  '裴',
+  '陆',
+  '荣',
+  '翁',
+  '惠',
+  '段',
+  '焦',
+  '侯',
+  '宁',
+  '仇',
+  '武',
+  '刘',
+  '景',
+  '龙',
+  '叶',
+  '黎',
+  '白',
+  '蒲',
+  '卓',
+  '乔',
+  '翟',
+  '谭',
+  '姬',
+  '申',
+  '冉',
+  '桑',
+  '牛',
+  '边',
+  '燕',
+  '浦',
+  '尚',
+  '温',
+  '庄',
+  '晏',
+  '柴',
+  '阎',
+  '连',
+  '容',
+  '向',
+  '古',
+  '易',
+  '慎',
+  '廖',
+  '曾',
+  '关',
+  '相',
+  '游',
+  '归',
+  '欧阳',
+  '司马',
+  '上官',
+  '夏侯',
+  '诸葛',
+  '闻人',
+  '东方',
+  '赫连',
+  '皇甫',
+  '尉迟',
+  '公孙',
+  '长孙',
+  '慕容',
+  '司徒',
+  '司空'
+]);
+
+const NON_PERSON_GIVEN_NAME_CHAR_PATTERN =
+  /[东西南北中上下大小古汉秦晋隋唐宋元明清山水河江湖海洋溪泉台堡嘴岭坡沟洞寨城村镇乡州县市区族氏母父兄弟姐妹门街路巷桥亭园寺塔井港湾岛关口堤渠川墓陵冢坟祠田岗坪窑窟厂站铺店营庄]/;
 
 const ROYAL_WANG_EPITHET_CHARS =
   '恭惠庄靖康安宣昭端定宪悼怀襄顺简景武文成敬烈肃毅思哲敏献元孝懿荣永德圣穆';
@@ -391,95 +672,63 @@ const isWomen = (tomb: Tomb) => {
 
 const isGeneral = (tomb: Tomb) => {
   const text = normalizeText(buildSearchText(tomb));
-  return includesAny(text, [
-    '将军',
-    '元帅',
-    '大将',
-    '上将',
-    '中将',
-    '少将',
-    '都督',
-    '武侯',
-    '武将',
-    '节度使',
-    '总兵',
-    '提督',
-    '都统',
-    '统帅',
-    '镇国',
-    '护国',
-    '骠骑',
-    '车骑',
-    '卫将军',
-    '开国元勋',
-    '开国功臣',
-    '勋臣'
-  ]);
+  return includesAny(text, GENERAL_KEYWORDS);
 };
 
 const isMinister = (tomb: Tomb) => {
   const text = normalizeText(buildSearchText(tomb));
-  return includesAny(text, [
-    '丞相',
-    '宰相',
-    '相国',
-    '尚书',
-    '侍郎',
-    '御史',
-    '谏官',
-    '谏议',
-    '参政',
-    '参知',
-    '太师',
-    '太傅',
-    '太尉',
-    '首辅',
-    '阁老',
-    '刺史',
-    '巡抚',
-    '总督',
-    '知府',
-    '知州',
-    '布政使',
-    '按察使',
-    '贤臣',
-    '名相'
-  ]);
+  return includesAny(text, MINISTER_KEYWORDS);
 };
 
 const isLiterati = (tomb: Tomb) => {
   if (!hasPersonAndTombKeyword(tomb)) return false;
   const text = normalizeText(buildSearchText(tomb));
-  return includesAny(text, [
-    '诗人',
-    '词人',
-    '文学家',
-    '思想家',
-    '哲学家',
-    '文人',
-    '名士',
-    '学者',
-    '学家',
-    '史学',
-    '教育家',
-    '作家',
-    '文豪',
-    '诗圣',
-    '诗仙',
-    '诗鬼',
-    '诗佛',
-    '词宗',
-    '词圣',
-    '国学',
-    '儒学',
-    '大师',
-    '国画',
-    '书法家',
-    '画家',
-    '书画',
-    '大儒',
-    '先生'
-  ]);
+  if (includesAny(text, NON_LITERATI_EXCLUSION_KEYWORDS)) return false;
+
+  const personText = normalizeText(getPersonName(tomb));
+  const nameText = normalizeText(tomb.name ?? '');
+
+  return (
+    includesAny(text, LITERATI_KEYWORDS) ||
+    includesAny(personText, LITERATI_TITLE_HINT_KEYWORDS) ||
+    includesAny(nameText, LITERATI_TITLE_HINT_KEYWORDS)
+  );
+};
+
+const looksLikeNamedPerson = (personName: string) => {
+  const value = personName.trim();
+  if (!/^[\u4e00-\u9fa5]{2,5}$/.test(value)) return false;
+
+  const compoundSurname = value.slice(0, 2);
+  const surname = COMMON_PERSON_SURNAMES.has(compoundSurname)
+    ? compoundSurname
+    : COMMON_PERSON_SURNAMES.has(value[0])
+      ? value[0]
+      : '';
+
+  if (!surname) return false;
+
+  const givenName = value.slice(surname.length);
+  if (givenName.length < 1 || givenName.length > 3) return false;
+  if (NON_PERSON_GIVEN_NAME_CHAR_PATTERN.test(givenName)) return false;
+  if (/(氏|族|墓|陵|冢|坟|祠)$/.test(givenName)) return false;
+
+  return true;
+};
+
+const hasLikelyNamedIndividualTomb = (tomb: Tomb) => {
+  if (!hasPersonAndTombKeyword(tomb)) return false;
+  if (tomb.level !== 'national') return false;
+
+  const text = normalizeText(buildSearchText(tomb));
+  if (includesAny(text, NON_LITERATI_EXCLUSION_KEYWORDS)) return false;
+
+  const name = tomb.name?.trim() ?? '';
+  if (!name) return false;
+  if (/(墓葬群|墓群|墓地)$/.test(name)) return false;
+  if (!/(陵寝|帝陵|王陵|皇陵|陵墓|墓|陵|冢|坟|祠堂|祠)$/.test(name)) return false;
+
+  return looksLikeNamedPerson(getPersonName(tomb));
 };
 
 export const inferCategorySlug = (tomb: Tomb): CategorySlug | null => {
@@ -491,7 +740,7 @@ export const inferCategorySlug = (tomb: Tomb): CategorySlug | null => {
   if (isGeneral(tomb)) return 'generals';
   if (isMinister(tomb)) return 'ministers';
   if (isLiterati(tomb)) return 'literati';
-  if (hasLikelyIndividualPersonTomb(tomb)) return 'literati';
+  if (hasLikelyNamedIndividualTomb(tomb)) return 'literati';
   return null;
 };
 

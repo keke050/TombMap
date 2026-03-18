@@ -4,6 +4,15 @@ export const normalizeText = (value: string) =>
     .replace(/\s+/g, '')
     .replace(/[·•・。.,，、()（）[\]【】]/g, '');
 
+const TOMB_NAME_ARTIFACT_PATTERN =
+  /^(?:\^|参考资料(?:\[[^\]]+\])?|引用错误[:：]|政府文件_|mw-parser-output|hlist|navbox)/i;
+
+export const isArtifactTombName = (name?: string | null) => {
+  const value = name?.trim() ?? '';
+  if (!value) return true;
+  return TOMB_NAME_ARTIFACT_PATTERN.test(value);
+};
+
 export const haversineMeters = (lat1: number, lng1: number, lat2: number, lng2: number) => {
   const toRad = (deg: number) => (deg * Math.PI) / 180;
   const r = 6371000;

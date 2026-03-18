@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import { listTombs } from '../../../../lib/data';
 import type { Tomb } from '../../../../lib/types';
+import { listSeedMarkers } from '../../../../lib/seed';
 
 export const runtime = 'nodejs';
 
@@ -118,6 +118,13 @@ const buildClusters = (
   return limit ? data.slice(0, limit) : data;
 };
 
+const buildCacheHeaders = () => ({
+  // `s-maxage` for Vercel Edge CDN, `max-age` for browsers.
+  'Cache-Control': 'public, max-age=1800, s-maxage=1800, stale-while-revalidate=86400'
+});
+
+const shouldUseTombDatabase = () => process.env.TOMBS_DATABASE === '1' && Boolean(process.env.DATABASE_URL);
+
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const raw = Object.fromEntries(searchParams.entries());
@@ -142,22 +149,31 @@ export async function GET(request: Request) {
     const tombs = shouldCluster && bbox
       ? buildClusters(filtered, bbox, Number.isFinite(zoom) ? zoom : 0, withName, limit)
       : filtered.map((item) => ({ id: item.id, lat: item.lat, lng: item.lng, name: withName ? item.name : undefined }));
-    return NextResponse.json({ tombs }, { headers: { 'Cache-Control': 'public, max-age=1800, stale-while-revalidate=86400' } });
+    return NextResponse.json({ tombs }, { headers: buildCacheHeaders() });
   }
 
-  const tombs = await listTombs(
-    {
-      includeExternal,
-      hasCoords,
-      limit
-    },
-    { emptyMode: 'all' }
-  );
+  const markers = shouldUseTombDatabase()
+    ? (() => {
+        // Lazy-load the heavier DB/search module only when needed.
+        return import('../../../../lib/data')
+          .then(({ listTombs }) =>
+            listTombs(
+              { includeExternal, hasCoords, limit },
+              { emptyMode: 'all' }
+            )
+          )
+          .then((tombs) => tombs.map(toMarker).filter(Boolean) as Array<Required<Pick<MarkerPoint, 'id' | 'lat' | 'lng'>> & { name?: string }>);
+      })()
+    : Promise.resolve(
+        listSeedMarkers({ includeExternal, hasCoords, limit }) as Array<
+          Required<Pick<MarkerPoint, 'id' | 'lat' | 'lng'>> & { name?: string }
+        >
+      );
 
-  const markers = tombs.map(toMarker).filter(Boolean) as Array<Required<Pick<MarkerPoint, 'id' | 'lat' | 'lng'>> & { name?: string }>;
-  markersCache.set(cacheKey, { ts: Date.now(), tombs: markers });
+  const resolvedMarkers = await markers;
+  markersCache.set(cacheKey, { ts: Date.now(), tombs: resolvedMarkers });
 
-  const filtered = bbox ? filterByBbox(markers, bbox) : markers;
+  const filtered = bbox ? filterByBbox(resolvedMarkers, bbox) : resolvedMarkers;
   const responseTombs = shouldCluster && bbox
     ? buildClusters(filtered, bbox, Number.isFinite(zoom) ? zoom : 0, withName, limit)
     : filtered.map((item) => ({ id: item.id, lat: item.lat, lng: item.lng, name: withName ? item.name : undefined }));
@@ -166,7 +182,7 @@ export async function GET(request: Request) {
     { tombs: responseTombs },
     {
       headers: {
-        'Cache-Control': 'public, max-age=1800, stale-while-revalidate=86400'
+        ...buildCacheHeaders()
       }
     }
   );

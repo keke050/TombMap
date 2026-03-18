@@ -29,6 +29,7 @@ type Props = {
   selectedId: string | null;
   onSelect: (id: string) => void;
   near: { lat: number; lng: number } | null;
+  isViewportLoading?: boolean;
   onViewportChange?: (payload: {
     center: { lat: number; lng: number };
     radius: number;
@@ -46,6 +47,7 @@ export default function MapView({
   selectedId,
   onSelect,
   near,
+  isViewportLoading = false,
   onViewportChange,
   preserveNearbyView = false,
   focusSelected = true,
@@ -1033,6 +1035,16 @@ export default function MapView({
 
   return (
     <>
+      {!loadError && !mapReady && (
+        <div className="map-chip" style={{ position: 'absolute', top: 20, left: 20 }}>
+          地图加载中…
+        </div>
+      )}
+      {!loadError && mapReady && isViewportLoading && (
+        <div className="map-chip" style={{ position: 'absolute', top: 20, left: 20 }}>
+          点位加载中…
+        </div>
+      )}
       {loadError && (
         <div className="map-chip" style={{ position: 'absolute', top: 20, left: 20 }}>
           {loadError}

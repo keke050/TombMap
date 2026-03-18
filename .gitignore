@@ -8,3 +8,4 @@ data/raw
 .npm-cache
 .DS_Store
 tsconfig.tsbuildinfo
+image_aionui_*.png

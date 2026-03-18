@@ -1,74 +1,73 @@
 # CombMap · 寻迹（中华古墓地图）
 
-以权威文保名单为底的名人古墓分布与探索平台，强调“可信数据 + 可视化 + 可检索”。
+以权威文保名录为底的古墓点位与检索平台，重点是「可信数据 + 地图体验 + 可持续更新」。
 
-## 主要功能
-- 古墓点位与行政区边界展示（仅古墓类文保）
-- 人物 / 称谓 / 关键词检索，支持省市区、范围筛选与附近模式
-- 地图点位联动详情卡片（级别、年代、地址、简介、图片）
-- 打卡、点赞、评论等轻互动
-- 搜索排行（按用户检索/点击累计）
-- 兼容离线种子数据与数据库模式
+## 功能概览
+- 地图点位：支持视野内加载、缩放聚合、点位联动详情
+- 检索与筛选：人物/称谓/关键词、省市区、级别、附近范围
+- 轻互动：点赞/收藏/打卡/评论、搜索点击排行
+- 双模式：默认离线种子数据 + 可选 Postgres（存互动/排行）
 
-## 数据库（永久存储互动与搜索排行）
-默认情况下（`TOMBS_DATABASE=0`），古墓数据读取自 `data/seed/tombs.json`，但只要配置 `DATABASE_URL` 并初始化表结构，就可以将点赞/评论/打卡/邀请登录/搜索排行等互动数据永久存入 Postgres。
+## 快速开始（本地）
+1. 安装依赖：`npm i`
+2. 启动开发：`npm run dev`（默认端口 `3001`）
+3. 打开：`http://localhost:3001`
 
-注意：当前版本的“用户体系与互动功能”依赖数据库（未配置 `DATABASE_URL` 时，登录/注册/点赞/评论等接口会返回错误）。
+环境变量示例见 `.env.example` / `.env.production.example`。
 
-1. 配置环境变量（示例见 `.env.example`）：
-   - `DATABASE_URL=postgres://...`
-2. 初始化表结构：
-   - `npm run db:init`
-3. 创建邀请码（可选）：
-   - `npm run invite:create`
-   - 或指定邮箱：`node scripts/create-invite.mjs --email=your@email.com`
+## 数据模式说明
+### 1) 种子数据模式（默认）
+- 古墓点位来自：`data/seed/tombs.json`
+- 适合：只做展示/检索/地图交互；无需数据库也能跑起来
+
+### 2) Postgres 模式（用于“用户体系/互动/排行”）
+当前版本：**数据库用于永久存储互动与搜索排行**；古墓点位仍来自种子数据。
+
+必需步骤：
+1. 配置 `DATABASE_URL=postgres://...`
+2. 初始化表结构：`npm run db:init`
+3.（可选）创建邀请码：`npm run invite:create` 或 `node scripts/create-invite.mjs --email=your@email.com`
 
 说明：
-- `npm run db:seed` 目前是 no-op（古墓点位仍使用本地种子数据），不必执行。
-- 如需将古墓点位也放入数据库（并用 DB 做检索/范围查询），再将 `TOMBS_DATABASE=1` 并补充 tombs 表结构与导入脚本（暂未内置）。
+- 未配置 `DATABASE_URL` 时，登录/注册/点赞/评论等接口会返回错误（点位展示仍可用）。
+- `TOMBS_DATABASE=1`（将古墓点位放入 DB 并用 PostGIS 做范围查询）目前未内置 schema/导入脚本。
 
-## 数据与管线
+## 公网性能优化（Vercel 场景）
+### 地图点位接口（关键）
+- `GET /api/tombs/markers`：按 `bbox + zoom` 返回视野点位/聚合点
+- 已做优化：
+  - seed 模式走轻量读取（`lib/seed/*`），避免加载重型检索模块
+  - 响应头启用 Edge 缓存：`Cache-Control: public, s-maxage=1800, stale-while-revalidate=86400`
+  - 前端对 `bbox/zoom` 做 rounding，提升 CDN 命中率（减少“抖动 URL”）
+
+### 统计接口（避免冷启动拖慢首页）
+- `GET /api/tombs/stats`：只返回全国/省份统计（同样启用 Edge 缓存）
+
+进一步建议（可选）：
+- 确保 Vercel region 与数据库 region 一致（否则每次互动请求都会被 RTT 拖慢）
+- 若点位规模继续增长，建议引入“瓦片/网格预聚合”（按 zoom 预计算，接口直接按 tile 取）
+
+## 数据与管线（简述）
 - 国家级：XLS 导入 + 合并
 - 省级：DOCX 导入 + 合并
 - 市级：来源清单驱动抓取/解析（HTML/CSV/XLS/XLSX/PDF）
-- 合并输出到 `data/seed/tombs.json`，可用高德地理编码补全坐标
+- 合并输出到：`data/seed/tombs.json`
+- 可选坐标补全：`python3 scripts/ingest/geocode.py`（高德地理编码 + POI 兜底）
 
-## 市级数据接入
-1. 在 `data/sources/city_sources.json` 中添加来源条目
-2. 运行 `python3 scripts/ingest/city_ingest.py`
-3. 运行 `python3 scripts/ingest/merge.py` 更新 `data/seed/tombs.json`
-4. 可选：运行 `python3 scripts/ingest/geocode.py` 补全坐标（高德地理编码 + 高德 POI 搜索兜底）
+## 目录结构（常用）
+- `app/`：Next.js App Router 页面与 API
+- `components/`：前端组件（地图、详情、评论、排行等）
+- `lib/`：业务逻辑
+  - `lib/seed/`：种子数据轻量读（markers 等）
+  - `lib/db.ts`：Postgres 连接池与查询封装
+- `data/`：种子数据与抓取配置
+- `scripts/`：数据抓取/导入/工具脚本
 
-坐标补全常用用法示例：
-- 仅补全缺失坐标（自动：地址具体 → 地理编码，否则走 POI 搜索）：`python3 scripts/ingest/geocode.py`
-- 先按省/市分批跑，控制配额与质量：`python3 scripts/ingest/geocode.py --mode poi --citylimit --province 浙江省 --limit 500 --checkpoint 50`
-- 补全过程报告：`data/raw/geocode_report.json`（含 ambiguous 候选，建议人工核对后再放宽阈值）
-
-## 当前进度（截至 2026-03-15）
-- 市级抓取脚本增强：附件自动下载、多工作表解析、级别过滤
-- 浙江省市县级名录（2023）已抓取并筛出市级墓葬 1141 条
-- 已执行合并，`data/seed/tombs.json` 更新为 5517 条
-- 已在 `.venv` 安装 `openpyxl` / `pdfplumber`
-
-## 已知限制
-- 南昌 / 赣州：页面无可解析表格或附件
-- 温州：页面/附件链接返回 404
-- 鹰潭：PDF 下载 TLS 失败
-
-## 经验与注意
-- 政府站点易 403 / 404 / 超时，必要时浏览器或手工下载附件
-- 附件链接常在 query 参数中，需从 URL 参数识别扩展名
-- 表头识别需至少 2 个字段命中，避免把标题行误判为表头
-- 多城市合并 Excel 常按“城市”分工作表，需遍历并把 sheet 名写入 city
-- 级别列可用于过滤市级数据（如 `level_allow`）
-- 系统级 pip 无写权限时使用项目内 `.venv`
-- TLS 握手失败可换网络或手工下载
-
-## 待办（提要）
-- 为江西 / 浙江更多城市补充可下载附件或本地文件
-- 对于 docx 附件：转为 CSV/XLSX 或补充解析
-- 对扫描 PDF：引入 OCR 流程，先转表格再解析
-- 补全缺失坐标（高德地理编码 + 校正）
-- 处理人物检索歧义：同名墓、称谓墓
-- 继续补齐全国 / 省级批次与附件数据
-- 无本地命中时的联网墓葬检索与点位生成（需确认数据源 / 缓存 / 合规）
+## 部署到 Vercel（建议）
+1. 推送仓库到 GitHub/GitLab 并导入 Vercel
+2. 配置环境变量：
+   - `NEXT_PUBLIC_AMAP_KEY` / `NEXT_PUBLIC_AMAP_SECURITY`（高德 Web Key 与安全密钥）
+   - `DATABASE_URL`（可选：启用登录/互动/排行）
+3. 部署后检查：
+   - 地图脚本域名绑定是否正确（高德 Key 常见问题）
+   - `GET /api/tombs/markers` 响应头是否含 `s-maxage`（Edge 缓存是否生效）

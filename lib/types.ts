@@ -44,6 +44,7 @@ export type TombDetail = Tomb & {
     checkins: number;
     comments: number;
   };
+  relatedTombs?: Tomb[];
   commentList: Array<{
     id: string;
     content: string;

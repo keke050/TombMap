@@ -3,6 +3,7 @@ import argparse
 import json
 import math
 import os
+import re
 import time
 from pathlib import Path
 from typing import Optional, Tuple
@@ -13,6 +14,18 @@ INPUT = Path("data/seed/tombs.json")
 OUTPUT = Path("data/seed/tombs.json")
 CACHE = Path("data/raw/geocode_cache.json")
 REPORT = Path("data/raw/geocode_verify_report.json")
+
+_PENDING_COORD_SUFFIX_RE = re.compile(
+    r"(?:(?:\s*[-—_]*\s*)?(?:（|\()?\s*坐标待补\s*(?:）|\))?\s*)$"
+)
+
+
+def strip_pending_coord_suffix(text: Optional[str]) -> Optional[str]:
+    if text is None:
+        return None
+    raw = str(text)
+    cleaned = _PENDING_COORD_SUFFIX_RE.sub("", raw).strip()
+    return cleaned
 
 
 def load_env_key():
@@ -132,6 +145,12 @@ def main():
     parser.add_argument("--county", help="仅处理指定区县（支持子串匹配）")
     parser.add_argument("--name", help="仅处理名称包含该关键词的条目")
     parser.add_argument("--only-missing", action="store_true", help="仅补全缺失坐标")
+    parser.add_argument(
+        "--strip-pending-suffix",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help="写入坐标后，移除 name/address 末尾的“坐标待补”后缀（默认开启；需配合 --apply）",
+    )
     args = parser.parse_args()
 
     if not KEY:
@@ -146,6 +165,7 @@ def main():
         "updated": 0,
         "missing": 0,
         "filtered": 0,
+        "suffix_stripped": 0,
         "mismatch": [],
         "filters": {
             "province": args.province,
@@ -154,6 +174,7 @@ def main():
             "name": args.name,
             "only_missing": args.only_missing,
             "limit": args.limit,
+            "strip_pending_suffix": bool(args.strip_pending_suffix),
         },
     }
 
@@ -199,6 +220,13 @@ def main():
                 item["lat"] = lat
                 item["lng"] = lng
                 report["updated"] += 1
+                if args.strip_pending_suffix:
+                    before_name = item.get("name")
+                    before_address = item.get("address")
+                    item["name"] = strip_pending_coord_suffix(before_name)
+                    item["address"] = strip_pending_coord_suffix(before_address)
+                    if item.get("name") != before_name or item.get("address") != before_address:
+                        report["suffix_stripped"] += 1
             continue
 
         try:
@@ -223,6 +251,13 @@ def main():
                 item["lat"] = lat
                 item["lng"] = lng
                 report["updated"] += 1
+                if args.strip_pending_suffix:
+                    before_name = item.get("name")
+                    before_address = item.get("address")
+                    item["name"] = strip_pending_coord_suffix(before_name)
+                    item["address"] = strip_pending_coord_suffix(before_address)
+                    if item.get("name") != before_name or item.get("address") != before_address:
+                        report["suffix_stripped"] += 1
 
     if args.apply:
         output_path.parent.mkdir(parents=True, exist_ok=True)

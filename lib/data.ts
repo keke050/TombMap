@@ -5,6 +5,7 @@ import {
   hasPreciseCoords,
   haversineMeters,
   inferPersonFromName,
+  isArtifactTombName,
   normalizeText
 } from './utils';
 import { fetchBaikeSummary, fetchRichSummary, fetchWikiSearchTitles } from './media';
@@ -75,8 +76,485 @@ type PersonAlias = {
   aliases: string[];
 };
 
-const tombOverrides: TombOverride[] = [];
-const personAliasList: PersonAlias[] = [];
+const tombOverrides: TombOverride[] = [
+  {
+    match: { id: 'wiki-city-450200-1' },
+    person: '柳宗元',
+    aliases: ['柳子厚', '柳侯']
+  },
+  {
+    match: { name: '安阳高陵', era_contains: '东汉', province: '河南省', category_contains: '古墓葬' },
+    person: '曹操',
+    aliases: ['魏武帝', '魏武王']
+  },
+  {
+    match: { name: '秦始皇陵', era_contains: '秦', province: '陕西省', category_contains: '古墓葬' },
+    person: '嬴政',
+    aliases: ['秦始皇']
+  },
+  {
+    match: { name: '泰陵', era_contains: '隋', province: '陕西省', category_contains: '古墓葬' },
+    person: '杨坚',
+    aliases: ['隋文帝']
+  },
+  {
+    match: { name: '隋炀帝陵', era_contains: '隋', province: '陕西省', category_contains: '古墓葬' },
+    person: '杨广',
+    aliases: ['隋炀帝']
+  },
+  {
+    match: { name: '隋炀帝陵', era_contains: '隋', province: '江苏省', category_contains: '古墓葬' },
+    person: '杨广',
+    aliases: ['隋炀帝']
+  },
+  {
+    match: { name: '长陵', era_contains: '西汉', province: '陕西省', category_contains: '古墓葬' },
+    person: '刘邦',
+    aliases: ['汉高祖']
+  },
+  {
+    match: { name: '安陵', era_contains: '西汉', province: '陕西省', category_contains: '古墓葬' },
+    person: '刘盈',
+    aliases: ['汉惠帝']
+  },
+  {
+    match: { name: '霸陵', era_contains: '西汉', province: '陕西省', category_contains: '古墓葬' },
+    person: '刘恒',
+    aliases: ['汉文帝']
+  },
+  {
+    match: { name: '阳陵', era_contains: '西汉', province: '陕西省', category_contains: '古墓葬' },
+    person: '刘启',
+    aliases: ['汉景帝']
+  },
+  {
+    match: { name: '茂陵', era_contains: '西汉', province: '陕西省', category_contains: '古墓葬' },
+    person: '刘彻',
+    aliases: ['汉武帝']
+  },
+  {
+    match: { name: '平陵', era_contains: '西汉', province: '陕西省', category_contains: '古墓葬' },
+    person: '刘弗陵',
+    aliases: ['汉昭帝']
+  },
+  {
+    match: { name: '杜陵', era_contains: '西汉', province: '陕西省', category_contains: '古墓葬' },
+    person: '刘询',
+    aliases: ['汉宣帝']
+  },
+  {
+    match: { name: '渭陵', era_contains: '西汉', province: '陕西省', category_contains: '古墓葬' },
+    person: '刘奭',
+    aliases: ['汉元帝']
+  },
+  {
+    match: { name: '延陵', era_contains: '西汉', province: '陕西省', category_contains: '古墓葬' },
+    person: '刘骜',
+    aliases: ['汉成帝']
+  },
+  {
+    match: { name: '义陵', era_contains: '西汉', province: '陕西省', category_contains: '古墓葬' },
+    person: '刘欣',
+    aliases: ['汉哀帝']
+  },
+  {
+    match: { name: '康陵', era_contains: '西汉', province: '陕西省', category_contains: '古墓葬' },
+    person: '刘衎',
+    aliases: ['汉平帝']
+  },
+  {
+    match: { name: '汉太上皇陵', era_contains: '西汉', province: '陕西省', category_contains: '古墓葬' },
+    person: '刘太公',
+    aliases: ['汉太上皇']
+  },
+  {
+    match: { name: '献陵', era_contains: '唐', province: '陕西省', category_contains: '古墓葬' },
+    person: '李渊',
+    aliases: ['唐高祖']
+  },
+  {
+    match: { name: '昭陵', era_contains: '唐', province: '陕西省', category_contains: '古墓葬' },
+    person: '李世民',
+    aliases: ['唐太宗']
+  },
+  {
+    match: { name: '乾陵', era_contains: '唐', province: '陕西省', category_contains: '古墓葬' },
+    person: '李治',
+    aliases: ['唐高宗', '武则天', '则天皇后']
+  },
+  {
+    match: { name: '定陵', era_contains: '唐', province: '陕西省', category_contains: '古墓葬' },
+    person: '李显',
+    aliases: ['唐中宗']
+  },
+  {
+    match: { name: '桥陵', era_contains: '唐', province: '陕西省', category_contains: '古墓葬' },
+    person: '李旦',
+    aliases: ['唐睿宗']
+  },
+  {
+    match: { name: '泰陵', era_contains: '唐', province: '陕西省', category_contains: '古墓葬' },
+    person: '李隆基',
+    aliases: ['唐玄宗']
+  },
+  {
+    match: { name: '建陵', era_contains: '唐', province: '陕西省', category_contains: '古墓葬' },
+    person: '李亨',
+    aliases: ['唐肃宗']
+  },
+  {
+    match: { name: '元陵', era_contains: '唐', province: '陕西省', category_contains: '古墓葬' },
+    person: '李豫',
+    aliases: ['唐代宗']
+  },
+  {
+    match: { name: '崇陵', era_contains: '唐', province: '陕西省', category_contains: '古墓葬' },
+    person: '李适',
+    aliases: ['唐德宗']
+  },
+  {
+    match: { name: '丰陵', era_contains: '唐', province: '陕西省', category_contains: '古墓葬' },
+    person: '李诵',
+    aliases: ['唐顺宗']
+  },
+  {
+    match: { name: '景陵', era_contains: '唐', province: '陕西省', category_contains: '古墓葬' },
+    person: '李纯',
+    aliases: ['唐宪宗']
+  },
+  {
+    match: { name: '光陵', era_contains: '唐', province: '陕西省', category_contains: '古墓葬' },
+    person: '李恒',
+    aliases: ['唐穆宗']
+  },
+  {
+    match: { name: '庄陵', era_contains: '唐', province: '陕西省', category_contains: '古墓葬' },
+    person: '李湛',
+    aliases: ['唐敬宗']
+  },
+  {
+    match: { name: '章陵', era_contains: '唐', province: '陕西省', category_contains: '古墓葬' },
+    person: '李昂',
+    aliases: ['唐文宗']
+  },
+  {
+    match: { name: '端陵', era_contains: '唐', province: '陕西省', category_contains: '古墓葬' },
+    person: '李炎',
+    aliases: ['唐武宗']
+  },
+  {
+    match: { name: '贞陵', era_contains: '唐', province: '陕西省', category_contains: '古墓葬' },
+    person: '李忱',
+    aliases: ['唐宣宗']
+  },
+  {
+    match: { name: '简陵', era_contains: '唐', province: '陕西省', category_contains: '古墓葬' },
+    person: '李漼',
+    aliases: ['唐懿宗']
+  },
+  {
+    match: { name: '靖陵', era_contains: '唐', province: '陕西省', category_contains: '古墓葬' },
+    person: '李儇',
+    aliases: ['唐僖宗']
+  },
+  {
+    match: { name: '明孝陵', era_contains: '明', province: '江苏省', category_contains: '古墓葬' },
+    person: '朱元璋',
+    aliases: ['明太祖', '洪武帝']
+  },
+  {
+    match: { name: '景泰陵', era_contains: '明', province: '北京市', category_contains: '古墓葬' },
+    person: '朱祁钰',
+    aliases: ['明代宗', '景泰帝']
+  },
+  {
+    match: { name: '十三陵', era_contains: '明', province: '北京市', category_contains: '古墓葬' },
+    person: '明代皇帝',
+    aliases: ['朱棣', '朱高炽', '朱瞻基', '朱祁镇', '朱见深', '朱祐樘', '朱厚照', '朱厚熜', '朱载坖', '朱翊钧', '朱常洛', '朱由校', '朱由检']
+  },
+  {
+    match: { name: '长陵', era_contains: '明', province: '北京市', category_contains: '古墓葬' },
+    person: '朱棣',
+    aliases: ['明成祖', '永乐帝']
+  },
+  {
+    match: { name: '献陵', era_contains: '明', province: '北京市', category_contains: '古墓葬' },
+    person: '朱高炽',
+    aliases: ['明仁宗']
+  },
+  {
+    match: { name: '景陵', era_contains: '明', province: '北京市', category_contains: '古墓葬' },
+    person: '朱瞻基',
+    aliases: ['明宣宗']
+  },
+  {
+    match: { name: '裕陵', era_contains: '明', province: '北京市', category_contains: '古墓葬' },
+    person: '朱祁镇',
+    aliases: ['明英宗']
+  },
+  {
+    match: { name: '茂陵', era_contains: '明', province: '北京市', category_contains: '古墓葬' },
+    person: '朱见深',
+    aliases: ['明宪宗']
+  },
+  {
+    match: { name: '泰陵', era_contains: '明', province: '北京市', category_contains: '古墓葬' },
+    person: '朱祐樘',
+    aliases: ['明孝宗']
+  },
+  {
+    match: { name: '康陵', era_contains: '明', province: '北京市', category_contains: '古墓葬' },
+    person: '朱厚照',
+    aliases: ['明武宗']
+  },
+  {
+    match: { name: '永陵', era_contains: '明', province: '北京市', category_contains: '古墓葬' },
+    person: '朱厚熜',
+    aliases: ['明世宗', '嘉靖帝']
+  },
+  {
+    match: { name: '昭陵', era_contains: '明', province: '北京市', category_contains: '古墓葬' },
+    person: '朱载坖',
+    aliases: ['明穆宗', '隆庆帝']
+  },
+  {
+    match: { name: '定陵', era_contains: '明', province: '北京市', category_contains: '古墓葬' },
+    person: '朱翊钧',
+    aliases: ['明神宗', '万历帝']
+  },
+  {
+    match: { name: '庆陵', era_contains: '明', province: '北京市', category_contains: '古墓葬' },
+    person: '朱常洛',
+    aliases: ['明光宗', '泰昌帝']
+  },
+  {
+    match: { name: '德陵', era_contains: '明', province: '北京市', category_contains: '古墓葬' },
+    person: '朱由校',
+    aliases: ['明熹宗', '天启帝']
+  },
+  {
+    match: { name: '思陵', era_contains: '明', province: '北京市', category_contains: '古墓葬' },
+    person: '朱由检',
+    aliases: ['明思宗', '崇祯帝']
+  },
+  {
+    match: { name: '福陵', era_contains: '清', province: '辽宁省', category_contains: '古墓葬' },
+    person: '努尔哈赤',
+    aliases: ['清太祖']
+  },
+  {
+    match: { name: '清昭陵', era_contains: '清', province: '辽宁省', category_contains: '古墓葬' },
+    person: '皇太极',
+    aliases: ['清太宗']
+  },
+  {
+    match: { name: '昭陵', era_contains: '清', province: '辽宁省', category_contains: '古墓葬' },
+    person: '皇太极',
+    aliases: ['清太宗']
+  },
+  {
+    match: { name: '清东陵', era_contains: '清', province: '河北省', category_contains: '古墓葬' },
+    person: '清代帝王',
+    aliases: ['福临', '玄烨', '弘历', '奕詝', '载淳', '载湉', '顺治', '康熙', '乾隆', '咸丰', '同治', '光绪']
+  },
+  {
+    match: { name: '清西陵', era_contains: '清', province: '河北省', category_contains: '古墓葬' },
+    person: '清代帝王',
+    aliases: ['胤禛', '颙琰', '旻宁', '雍正', '嘉庆', '道光']
+  },
+  {
+    match: { name: '孝陵', era_contains: '清', province: '河北省', category_contains: '古墓葬' },
+    person: '福临',
+    aliases: ['顺治帝', '清世祖']
+  },
+  {
+    match: { name: '景陵', era_contains: '清', province: '河北省', category_contains: '古墓葬' },
+    person: '玄烨',
+    aliases: ['康熙帝', '清圣祖', '康熙']
+  },
+  {
+    match: { name: '裕陵', era_contains: '清', province: '河北省', category_contains: '古墓葬' },
+    person: '弘历',
+    aliases: ['乾隆帝', '清高宗', '乾隆']
+  },
+  {
+    match: { name: '定陵', era_contains: '清', province: '河北省', category_contains: '古墓葬' },
+    person: '奕詝',
+    aliases: ['咸丰帝', '清文宗', '咸丰']
+  },
+  {
+    match: { name: '惠陵', era_contains: '清', province: '河北省', category_contains: '古墓葬' },
+    person: '载淳',
+    aliases: ['同治帝', '清穆宗', '同治']
+  },
+  {
+    match: { name: '崇陵', era_contains: '清', province: '河北省', category_contains: '古墓葬' },
+    person: '载湉',
+    aliases: ['光绪帝', '清德宗', '光绪']
+  },
+  {
+    match: { name: '泰陵', era_contains: '清', province: '河北省', category_contains: '古墓葬' },
+    person: '胤禛',
+    aliases: ['雍正帝', '清世宗', '雍正']
+  },
+  {
+    match: { name: '昌陵', era_contains: '清', province: '河北省', category_contains: '古墓葬' },
+    person: '颙琰',
+    aliases: ['嘉庆帝', '清仁宗', '嘉庆']
+  },
+  {
+    match: { name: '慕陵', era_contains: '清', province: '河北省', category_contains: '古墓葬' },
+    person: '旻宁',
+    aliases: ['道光帝', '清宣宗', '道光']
+  },
+  {
+    match: { name: '东汉光武帝原陵', province: '河南省', category_contains: '古墓葬' },
+    person: '刘秀',
+    aliases: ['汉光武帝', '光武帝']
+  },
+  {
+    match: { name: '光武帝陵', province: '河南省', category_contains: '古墓葬' },
+    person: '刘秀',
+    aliases: ['汉光武帝', '光武帝']
+  },
+  {
+    match: { name: '汉献帝禅陵', province: '河南省', category_contains: '古墓葬' },
+    person: '刘协',
+    aliases: ['汉献帝']
+  },
+  {
+    match: { name: '惠陵', era_contains: '三国', province: '四川省', category_contains: '古墓葬' },
+    person: '刘备',
+    aliases: ['蜀汉昭烈帝', '汉昭烈帝', '昭烈帝']
+  },
+  {
+    match: { name: '吴大帝孙权蒋陵', era_contains: '三国', province: '江苏省', category_contains: '古墓葬' },
+    person: '孙权',
+    aliases: ['吴大帝']
+  },
+  {
+    match: { name: '吳大帝孫權蔣陵', era_contains: '东吴', province: '江苏省', category_contains: '古墓葬' },
+    person: '孙权',
+    aliases: ['吳大帝', '吴大帝']
+  },
+  {
+    match: { name: '北魏孝文帝元宏长陵', era_contains: '北魏', province: '河南省', category_contains: '古墓葬' },
+    person: '元宏',
+    aliases: ['北魏孝文帝']
+  },
+  {
+    match: { name: '北魏宣武帝景陵', era_contains: '北魏', province: '河南省', category_contains: '古墓葬' },
+    person: '元恪',
+    aliases: ['北魏宣武帝']
+  },
+  {
+    match: { name: '北魏孝明帝元诩定陵', era_contains: '北魏', province: '河南省', category_contains: '古墓葬' },
+    person: '元诩',
+    aliases: ['北魏孝明帝']
+  },
+  {
+    match: { name: '北魏孝庄帝静陵', era_contains: '北魏', province: '河南省', category_contains: '古墓葬' },
+    person: '元子攸',
+    aliases: ['北魏孝庄帝']
+  },
+  {
+    match: { name: '北周静帝恭陵', era_contains: '北周', province: '陕西省', category_contains: '古墓葬' },
+    person: '宇文阐',
+    aliases: ['北周静帝']
+  },
+  {
+    match: { name: '北周文帝成陵', era_contains: '北周', province: '陕西省', category_contains: '古墓葬' },
+    person: '宇文泰',
+    aliases: ['北周文帝']
+  },
+  {
+    match: { name: '宋少帝陵', province: '广东省', category_contains: '古墓葬' },
+    person: '赵昺',
+    aliases: ['宋少帝', '宋末帝']
+  },
+  {
+    match: { name: '明皇陵', era_contains: '明', province: '安徽省', category_contains: '古墓葬' },
+    person: '朱元璋',
+    aliases: ['明太祖', '洪武帝']
+  },
+  {
+    match: { name: '西夏陵', era_contains: '西夏', province: '宁夏回族自治区', category_contains: '古墓葬' },
+    person: '西夏帝王',
+    aliases: ['李元昊', '西夏景宗', '党项帝陵']
+  }
+];
+const manualPersonAliasSupplements: PersonAlias[] = [
+  {
+    person: '武则天',
+    aliases: ['则天皇后', '武曌', '武后']
+  }
+];
+
+const normalizeAliasKey = (value?: string | null) => {
+  if (!value) return null;
+  const token = normalizeText(value);
+  return token || null;
+};
+
+const isGenericPersonLabel = (value: string) => /(帝王|皇帝|诸帝|王朝|朝代)/.test(value);
+
+const buildPersonAliasList = () => {
+  const grouped = new Map<
+    string,
+    {
+      person: string;
+      aliases: Set<string>;
+      manual: boolean;
+      order: number;
+    }
+  >();
+  let order = 0;
+
+  const upsert = (personRaw?: string | null, aliasesRaw?: string[] | null, manual = false) => {
+    const person = (personRaw ?? '').trim();
+    if (!person) return;
+    const key = normalizeAliasKey(person);
+    if (!key) return;
+
+    let entry = grouped.get(key);
+    if (!entry) {
+      entry = {
+        person,
+        aliases: new Set<string>(),
+        manual,
+        order: order++
+      };
+      grouped.set(key, entry);
+    } else if (manual && !entry.manual) {
+      entry.manual = true;
+      entry.person = person;
+    }
+
+    (aliasesRaw ?? []).forEach((alias) => {
+      const trimmed = alias?.trim();
+      if (!trimmed || trimmed === person) return;
+      entry!.aliases.add(trimmed);
+    });
+  };
+
+  tombOverrides.forEach((item) => upsert(item.person, item.aliases, false));
+  manualPersonAliasSupplements.forEach((item) => upsert(item.person, item.aliases, true));
+
+  return Array.from(grouped.values())
+    .sort((a, b) => {
+      if (a.manual !== b.manual) return a.manual ? -1 : 1;
+      const aGeneric = isGenericPersonLabel(a.person);
+      const bGeneric = isGenericPersonLabel(b.person);
+      if (aGeneric !== bGeneric) return aGeneric ? 1 : -1;
+      return a.order - b.order;
+    })
+    .map((item) => ({
+      person: item.person,
+      aliases: Array.from(item.aliases)
+    }));
+};
+
+const personAliasList: PersonAlias[] = buildPersonAliasList();
 const personAliasIndex = new Map<string, string[]>();
 const personAliasSourceIndex = new Map<string, string[]>();
 const personCanonicalIndex = new Map<string, string>();
@@ -198,6 +676,7 @@ const isOcrSource = (tomb: Tomb) => {
 const qualityFilter = (tomb: Tomb, includeOcr = false) => {
   const category = tomb.category ?? '';
   const name = tomb.name ?? '';
+  if (isArtifactTombName(name)) return false;
   if (/宗祠/.test(name) && !/墓/.test(name)) return false;
   if (TEMPLE_NAME_PATTERN.test(name) && !TOMB_NAME_PATTERN.test(name)) return false;
   const isTombLike =
@@ -377,6 +856,11 @@ const normalizeAdminValue = (value?: string | null) => {
   return token;
 };
 
+const CITY_FILTER_ALIASES: Record<string, string[]> = {
+  // "大西安"常用口径：顺陵等点位实际在咸阳渭城区，但用户常按西安检索。
+  西安: ['西安市', '咸阳市']
+};
+
 const matchesAdminField = (fieldValue?: string | null, filterValue?: string | null) => {
   if (!filterValue) return true;
   if (!fieldValue) return false;
@@ -402,7 +886,17 @@ const matchesAdminField = (fieldValue?: string | null, filterValue?: string | nu
 
 const matchesAdminFilters = (tomb: Tomb, filters: TombFilters) => {
   if (filters.province && !matchesAdminField(tomb.province, filters.province)) return false;
-  if (filters.city && !matchesAdminField(tomb.city, filters.city)) return false;
+  if (filters.city) {
+    const filterToken = normalizeAdminValue(filters.city);
+    const filterKey = filterToken ? stripAdminSuffix(filterToken) : null;
+    const aliasGroup = filterKey ? CITY_FILTER_ALIASES[filterKey] : null;
+    if (aliasGroup?.length) {
+      const ok = aliasGroup.some((alias) => matchesAdminField(tomb.city, alias));
+      if (!ok) return false;
+    } else if (!matchesAdminField(tomb.city, filters.city)) {
+      return false;
+    }
+  }
   if (filters.county && !matchesAdminField(tomb.county, filters.county)) return false;
   return true;
 };
@@ -754,10 +1248,8 @@ const buildPersonContext = async (personInput?: string | null): Promise<PersonCo
   }
 
   if (baikeQuery) {
-    let summary = await fetchBaikeSummary(baikeQuery);
-    if (!summary && canonicalName && canonicalName !== baikeQuery) {
-      summary = await fetchBaikeSummary(canonicalName);
-    }
+    const fallbacks = canonicalName && canonicalName !== baikeQuery ? [canonicalName] : [];
+    const summary = await fetchRichSummary(baikeQuery, fallbacks);
     if (summary) {
       const titleToken = normalizeToken(summary.title);
       const titleLooksPerson =
@@ -940,6 +1432,8 @@ const sortTombsByQueryRelevance = (items: Tomb[], query: string) => {
   const collator = new Intl.Collator('zh-Hans-CN');
   const ranked = items.map((tomb, idx) => {
     const nameHit = matchesTombNameQuery(tomb, queryToken);
+    const exactNameHit = normalizeText(tomb.name ?? '') === queryToken;
+    const exactAliasHit = !exactNameHit && (tomb.aliases ?? []).some((alias) => normalizeText(alias) === queryToken);
     const personHit = !nameHit && matchesTombPersonQuery(tomb, queryToken);
     const locationHit = !nameHit && !personHit && matchesTombLocationQuery(tomb, queryToken);
     const group = nameHit || personHit ? 0 : locationHit ? 1 : 2;
@@ -947,6 +1441,7 @@ const sortTombsByQueryRelevance = (items: Tomb[], query: string) => {
       tomb,
       idx,
       group,
+      exact: exactNameHit || exactAliasHit ? 1 : 0,
       level: levelRank[tomb.level] ?? 0,
       score: tombScore(tomb),
       name: tomb.name ?? ''
@@ -955,6 +1450,7 @@ const sortTombsByQueryRelevance = (items: Tomb[], query: string) => {
 
   ranked.sort((a, b) => {
     if (a.group !== b.group) return a.group - b.group;
+    if (a.exact !== b.exact) return b.exact - a.exact;
     if (a.level !== b.level) return b.level - a.level;
     if (a.score !== b.score) return b.score - a.score;
     const nameCmp = collator.compare(a.name, b.name);
@@ -1504,6 +2000,7 @@ const dedupeTombsWithAliases = (items: Tomb[], context: PersonContext) => {
 export type TombFilters = {
   q?: string | null;
   person?: string | null;
+  era?: string | null;
   province?: string | null;
   city?: string | null;
   county?: string | null;
@@ -1566,6 +2063,7 @@ const buildExternalCacheKey = (filters: TombFilters, baseQuery: string, personQu
   return JSON.stringify({
     baseQuery: baseQuery.trim(),
     personQuery: personQuery.trim(),
+    era: filters.era ?? null,
     province: filters.province ?? null,
     city: filters.city ?? null,
     county: filters.county ?? null,
@@ -1770,16 +2268,17 @@ const baseSeedFilter = (filters: TombFilters, options: { includeAll?: boolean } 
     .filter((tomb) => includeAll || qualityFilter(tomb, includeOcr))
     .filter((tomb) => (!hasCoords ? true : hasPreciseCoords(tomb)))
     .filter((tomb) => {
-    if (filters.level && tomb.level !== filters.level) return false;
-    if (!matchesAdminFilters(tomb, filters)) return false;
-    if (filters.near && tomb.lat != null && tomb.lng != null) {
-      const distance = haversineMeters(filters.near.lat, filters.near.lng, tomb.lat, tomb.lng);
-      if (distance > radius) return false;
-    } else if (filters.near) {
-      return false;
-    }
-    return true;
-  });
+      if (filters.level && tomb.level !== filters.level) return false;
+      if (!matchesEraFilter(tomb, filters.era)) return false;
+      if (!matchesAdminFilters(tomb, filters)) return false;
+      if (filters.near && tomb.lat != null && tomb.lng != null) {
+        const distance = haversineMeters(filters.near.lat, filters.near.lng, tomb.lat, tomb.lng);
+        if (distance > radius) return false;
+      } else if (filters.near) {
+        return false;
+      }
+      return true;
+    });
 
   if (!q) return base;
 
@@ -1792,6 +2291,7 @@ const baseSeedFilter = (filters: TombFilters, options: { includeAll?: boolean } 
 const matchesSummaryFilters = (tomb: Tomb, filters: TombFilters, includeOcr: boolean) => {
   if (!qualityFilter(tomb, includeOcr)) return false;
   if (filters.level && tomb.level !== filters.level) return false;
+  if (!matchesEraFilter(tomb, filters.era)) return false;
   if (!matchesAdminFilters(tomb, filters)) return false;
   if (filters.hasCoords && !hasPreciseCoords(tomb)) return false;
   if (filters.near) {
@@ -1836,6 +2336,7 @@ const titleFallbackFilter = (filters: TombFilters, titles: string[]) => {
     .filter((tomb) => {
       if (hasCoords && !hasPreciseCoords(tomb)) return false;
       if (filters.level && tomb.level !== filters.level) return false;
+      if (!matchesEraFilter(tomb, filters.era)) return false;
       if (!matchesAdminFilters(tomb, filters)) return false;
       if (filters.near && tomb.lat != null && tomb.lng != null) {
         const distance = haversineMeters(filters.near.lat, filters.near.lng, tomb.lat, tomb.lng);
@@ -1900,6 +2401,7 @@ const summaryFallbackFilter = (filters: TombFilters, summaryText: string) => {
     .filter((tomb) => {
       if (hasCoords && !hasPreciseCoords(tomb)) return false;
       if (filters.level && tomb.level !== filters.level) return false;
+      if (!matchesEraFilter(tomb, filters.era)) return false;
       if (!matchesAdminFilters(tomb, filters)) return false;
       if (filters.near && tomb.lat != null && tomb.lng != null) {
         const distance = haversineMeters(filters.near.lat, filters.near.lng, tomb.lat, tomb.lng);
@@ -1968,11 +2470,20 @@ const hashString = (value: string) =>
 const isEmptySearch = (filters: TombFilters) =>
   !filters.q &&
   !filters.person &&
+  !filters.era &&
   !filters.province &&
   !filters.city &&
   !filters.county &&
   !filters.level &&
   !filters.near;
+
+const matchesEraFilter = (tomb: Tomb, era?: string | null) => {
+  const normalizedQuery = normalizeText(era ?? '');
+  if (!normalizedQuery) return true;
+  const normalizedEra = normalizeText(tomb.era ?? '');
+  if (!normalizedEra) return false;
+  return normalizedEra.includes(normalizedQuery) || normalizedQuery.includes(normalizedEra);
+};
 
 const buildSeedSample = (filters: TombFilters) => {
   const includeOcr = Boolean(filters.includeOcr);
@@ -2020,6 +2531,7 @@ export const listTombs = async (filters: TombFilters, options: TombListOptions =
     ...filters,
     q: filters.q?.trim() || null,
     person: filters.person?.trim() || null,
+    era: filters.era?.trim() || null,
     province: filters.province?.trim() || null,
     city: filters.city?.trim() || null,
     county: filters.county?.trim() || null,
@@ -2033,6 +2545,7 @@ export const listTombs = async (filters: TombFilters, options: TombListOptions =
   if (
     !adjustedFilters.q &&
     adjustedFilters.person &&
+    !adjustedFilters.era &&
     !adjustedFilters.province &&
     !adjustedFilters.city &&
     !adjustedFilters.county
@@ -2198,6 +2711,10 @@ export const listTombs = async (filters: TombFilters, options: TombListOptions =
   if (adjustedFilters.level) {
     conditions.push(`level = $${idx++}`);
     params.push(adjustedFilters.level);
+  }
+  if (adjustedFilters.era) {
+    conditions.push(`era ILIKE $${idx++}`);
+    params.push(`%${adjustedFilters.era}%`);
   }
   if (adjustedFilters.province) {
     if (shouldUseAdminLike(adjustedFilters.province)) {
@@ -2388,6 +2905,102 @@ const buildDetailWithoutInteractions = (tomb: Tomb): TombDetail => {
     },
     commentList: []
   };
+};
+
+const RELATED_SCORE_LEVEL: Record<string, number> = {
+  national: 5,
+  provincial: 4,
+  city: 3,
+  county: 2,
+  external: 1
+};
+
+const sharesPersonContext = (source: Tomb, candidate: Tomb) => {
+  const sourceCandidates = buildPersonCandidates(source);
+  if (!sourceCandidates.size) return false;
+  const candidateCandidates = buildPersonCandidates(candidate);
+  if (!candidateCandidates.size) return false;
+  for (const token of sourceCandidates) {
+    if (candidateCandidates.has(token)) return true;
+  }
+  return false;
+};
+
+const buildRelatedScore = (source: Tomb, candidate: Tomb) => {
+  if (!candidate.id || candidate.id === source.id) return null;
+
+  const sourceProvince = source.province ?? null;
+  const candidateProvince = candidate.province ?? null;
+  const sameCategory = normalizeText(source.category ?? '') === normalizeText(candidate.category ?? '');
+  const sameProvince =
+    sourceProvince && candidateProvince
+      ? normalizeText(sourceProvince) === normalizeText(candidateProvince)
+      : false;
+  const sourceCity = extractCity(source);
+  const candidateCity = extractCity(candidate);
+  const sameCity = Boolean(sourceCity && candidateCity && adminOverlap(sourceCity, candidateCity));
+  const sourceCounty = extractCounty(source);
+  const candidateCounty = extractCounty(candidate);
+  const sameCounty = Boolean(sourceCounty && candidateCounty && adminOverlap(sourceCounty, candidateCounty));
+  const sameEra = Boolean(normalizeText(source.era ?? '')) && matchesEraFilter(candidate, source.era);
+  const samePerson = sharesPersonContext(source, candidate);
+  const sameLevel = Boolean(source.level && candidate.level && source.level === candidate.level);
+
+  let distanceMeters: number | null = null;
+  let distanceScore = 0;
+  if (source.lat != null && source.lng != null && candidate.lat != null && candidate.lng != null) {
+    distanceMeters = haversineMeters(source.lat, source.lng, candidate.lat, candidate.lng);
+    if (distanceMeters <= 5_000) distanceScore = 28;
+    else if (distanceMeters <= 20_000) distanceScore = 20;
+    else if (distanceMeters <= 80_000) distanceScore = 12;
+    else if (distanceMeters <= 200_000) distanceScore = 6;
+  }
+
+  const score =
+    (samePerson ? 80 : 0) +
+    (sameEra ? 34 : 0) +
+    (sameCategory ? 22 : 0) +
+    (sameProvince ? 16 : 0) +
+    (sameCity ? 14 : 0) +
+    (sameCounty ? 10 : 0) +
+    (sameLevel ? 6 : 0) +
+    distanceScore;
+
+  const hasStrongSignal = samePerson || sameEra || sameCategory || sameProvince || sameCity || sameCounty || distanceScore > 0;
+  if (!hasStrongSignal || score <= 0) return null;
+
+  return { score, distanceMeters };
+};
+
+export const listRelatedTombs = async (tomb: Tomb, limit = 6): Promise<Tomb[]> => {
+  const normalizedSource = normalizeTomb(tomb);
+  const candidates = dedupeTombs(
+    seedTombs.map(normalizeTomb).filter((item) => qualityFilter(item))
+  );
+
+  return candidates
+    .map((candidate) => {
+      const related = buildRelatedScore(normalizedSource, candidate);
+      if (!related) return null;
+      return {
+        candidate,
+        score: related.score,
+        distanceMeters: related.distanceMeters
+      };
+    })
+    .filter(Boolean)
+    .sort((left, right) => {
+      if (right!.score !== left!.score) return right!.score - left!.score;
+      const leftDistance = left!.distanceMeters ?? Number.POSITIVE_INFINITY;
+      const rightDistance = right!.distanceMeters ?? Number.POSITIVE_INFINITY;
+      if (leftDistance !== rightDistance) return leftDistance - rightDistance;
+      const leftLevel = RELATED_SCORE_LEVEL[left!.candidate.level ?? ''] ?? 0;
+      const rightLevel = RELATED_SCORE_LEVEL[right!.candidate.level ?? ''] ?? 0;
+      if (rightLevel !== leftLevel) return rightLevel - leftLevel;
+      return left!.candidate.name.localeCompare(right!.candidate.name, 'zh-Hans-CN');
+    })
+    .slice(0, Math.max(1, Math.min(12, limit)))
+    .map((entry) => entry!.candidate);
 };
 
 const buildDetailFromDatabaseInteractions = async (tomb: Tomb): Promise<TombDetail> => {

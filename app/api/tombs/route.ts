@@ -8,6 +8,7 @@ export const runtime = 'nodejs';
 const querySchema = z.object({
   q: z.string().optional(),
   person: z.string().optional(),
+  era: z.string().optional(),
   province: z.string().optional(),
   city: z.string().optional(),
   county: z.string().optional(),
@@ -35,6 +36,7 @@ const hasValue = (value?: string | null) => Boolean(value && value.trim());
 const isEmptyQuery = (payload: {
   q?: string | null;
   person?: string | null;
+  era?: string | null;
   province?: string | null;
   city?: string | null;
   county?: string | null;
@@ -43,6 +45,7 @@ const isEmptyQuery = (payload: {
 }) =>
   !hasValue(payload.q) &&
   !hasValue(payload.person) &&
+  !hasValue(payload.era) &&
   !hasValue(payload.province) &&
   !hasValue(payload.city) &&
   !hasValue(payload.county) &&
@@ -76,6 +79,7 @@ export async function GET(request: Request) {
   const filters = {
     q: parsed.data.q ?? null,
     person: parsed.data.person ?? null,
+    era: parsed.data.era ?? null,
     province: parsed.data.province ?? null,
     city: parsed.data.city ?? null,
     county: parsed.data.county ?? null,

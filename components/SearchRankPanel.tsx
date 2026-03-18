@@ -25,7 +25,7 @@ const levelLabel: Record<string, string> = {
 export default function SearchRankPanel({
   onSelect,
   refreshToken,
-  limit = 12
+  limit = 10
 }: {
   onSelect: (id: string) => void;
   refreshToken?: number;
@@ -36,7 +36,7 @@ export default function SearchRankPanel({
   const [error, setError] = useState<string | null>(null);
   const [rotate, setRotate] = useState(0);
 
-  const effectiveLimit = useMemo(() => Math.max(1, Math.min(50, Math.floor(limit))), [limit]);
+  const effectiveLimit = useMemo(() => Math.max(1, Math.min(10, Math.floor(limit))), [limit]);
 
   useEffect(() => {
     let cancelled = false;
@@ -46,7 +46,16 @@ export default function SearchRankPanel({
       const response = await fetch(`/api/rank/search?limit=${effectiveLimit}`, { method: 'GET' }).catch(() => null);
       if (cancelled) return;
       if (!response?.ok) {
-        setError('排行加载失败');
+        let message = '排行加载失败';
+        try {
+          const data = response ? await response.json() : null;
+          if (data && typeof data.error === 'string' && data.error.trim()) {
+            message = data.error.trim();
+          }
+        } catch {
+          // ignore JSON parse errors
+        }
+        setError(message);
         setLoading(false);
         return;
       }
@@ -94,7 +103,6 @@ export default function SearchRankPanel({
                   <div className="rank-main">
                     <div className="rank-titleRow">
                       <div className="result-title">{item.name}</div>
-                      <div className="rank-count">{item.count}</div>
                     </div>
                     <div className="result-meta">
                       {[item.era, levelText, location].filter(Boolean).join(' · ')}

@@ -7,6 +7,7 @@ export type HotSearchItem = {
   apply: {
     person?: string;
     keyword?: string;
+    era?: string;
     province?: string;
     city?: string;
     county?: string;
@@ -56,19 +57,19 @@ const CITY_ITEMS: HotSearchItem[] = [
 ];
 
 const DYNASTY_ITEMS: HotSearchItem[] = [
-  { id: 'd-qin', type: 'dynasty', label: '秦代', apply: { keyword: '秦代' } },
-  { id: 'd-han', type: 'dynasty', label: '汉代', apply: { keyword: '汉代' } },
-  { id: 'd-xi-han', type: 'dynasty', label: '西汉', apply: { keyword: '西汉' } },
-  { id: 'd-dong-han', type: 'dynasty', label: '东汉', apply: { keyword: '东汉' } },
-  { id: 'd-wei-jin', type: 'dynasty', label: '魏晋', apply: { keyword: '魏晋' } },
-  { id: 'd-sui', type: 'dynasty', label: '隋代', apply: { keyword: '隋代' } },
-  { id: 'd-tang', type: 'dynasty', label: '唐代', apply: { keyword: '唐代' } },
-  { id: 'd-song', type: 'dynasty', label: '宋代', apply: { keyword: '宋代' } },
-  { id: 'd-yuan', type: 'dynasty', label: '元代', apply: { keyword: '元代' } },
-  { id: 'd-ming', type: 'dynasty', label: '明代', apply: { keyword: '明代' } },
-  { id: 'd-qing', type: 'dynasty', label: '清代', apply: { keyword: '清代' } },
-  { id: 'd-zhanguo', type: 'dynasty', label: '战国', apply: { keyword: '战国' } },
-  { id: 'd-sanguo', type: 'dynasty', label: '三国', apply: { keyword: '三国' } }
+  { id: 'd-qin', type: 'dynasty', label: '秦代', apply: { era: '秦' } },
+  { id: 'd-han', type: 'dynasty', label: '汉代', apply: { era: '汉' } },
+  { id: 'd-xi-han', type: 'dynasty', label: '西汉', apply: { era: '西汉' } },
+  { id: 'd-dong-han', type: 'dynasty', label: '东汉', apply: { era: '东汉' } },
+  { id: 'd-wei-jin', type: 'dynasty', label: '魏晋', apply: { era: '魏晋' } },
+  { id: 'd-sui', type: 'dynasty', label: '隋代', apply: { era: '隋' } },
+  { id: 'd-tang', type: 'dynasty', label: '唐代', apply: { era: '唐' } },
+  { id: 'd-song', type: 'dynasty', label: '宋代', apply: { era: '宋' } },
+  { id: 'd-yuan', type: 'dynasty', label: '元代', apply: { era: '元' } },
+  { id: 'd-ming', type: 'dynasty', label: '明代', apply: { era: '明' } },
+  { id: 'd-qing', type: 'dynasty', label: '清代', apply: { era: '清' } },
+  { id: 'd-zhanguo', type: 'dynasty', label: '战国', apply: { era: '战国' } },
+  { id: 'd-sanguo', type: 'dynasty', label: '三国', apply: { era: '三国' } }
 ];
 
 const PROVINCE_ITEMS: HotSearchItem[] = [

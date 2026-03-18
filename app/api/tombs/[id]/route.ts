@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getTombDetail, recordTombSummary } from '../../../../lib/data';
+import { getTombDetail, listRelatedTombs, recordTombSummary } from '../../../../lib/data';
 import { fetchRichImages, fetchRichSummary } from '../../../../lib/media';
 import { buildImageQueries, buildSummaryQueries, inferPersonFromName } from '../../../../lib/utils';
 import { readSegmentParam } from '../../../../lib/nextParams';
@@ -49,13 +49,14 @@ export async function GET(
   const imageFallbacks = imageQueries.slice(1);
   const seedImages = detail.images ?? [];
   const shouldFetchImages = seedImages.length === 0;
-  const [images, summary] = await Promise.all([
+  const [images, summary, relatedTombs] = await Promise.all([
     shouldFetchImages ? fetchRichImages(imageQuery, imageFallbacks) : Promise.resolve([]),
     fetchRichSummary(summaryQuery, summaryFallbacks, {
       name: detail.name,
       person: detail.person,
       aliases: detail.aliases
-    })
+    }),
+    listRelatedTombs(detail, 6)
   ]);
   recordTombSummary(detail, summary);
 
@@ -77,6 +78,7 @@ export async function GET(
       description: briefSummary ?? undefined,
       reference: summary ? { title: summary.title, url: summary.url, source: summary.source } : detail.reference,
       images: seedImages.length ? seedImages : images,
+      relatedTombs,
       favorited,
       liked,
       checkedIn

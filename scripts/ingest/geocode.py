@@ -14,6 +14,18 @@ OUTPUT = Path("data/seed/tombs.json")
 CACHE = Path("data/raw/geocode_cache.json")
 REPORT = Path("data/raw/geocode_report.json")
 
+_PENDING_COORD_SUFFIX_RE = re.compile(
+    r"(?:(?:\s*[-—_]*\s*)?(?:（|\()?\s*坐标待补\s*(?:）|\))?\s*)$"
+)
+
+
+def strip_pending_coord_suffix(text: Optional[str]) -> Optional[str]:
+    if text is None:
+        return None
+    raw = str(text)
+    cleaned = _PENDING_COORD_SUFFIX_RE.sub("", raw).strip()
+    return cleaned
+
 
 def load_env_key():
     key = os.getenv("AMAP_WEB_KEY")
@@ -250,6 +262,12 @@ def main():
     parser.add_argument("--city", help="仅处理指定城市（支持子串匹配）")
     parser.add_argument("--county", help="仅处理指定区县（支持子串匹配）")
     parser.add_argument("--name", help="仅处理名称包含该关键词的条目")
+    parser.add_argument(
+        "--strip-pending-suffix",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help="拿到坐标后，移除 name/address 末尾的“坐标待补”后缀（默认开启）",
+    )
     args = parser.parse_args()
 
     if not KEY:
@@ -274,6 +292,7 @@ def main():
         "poi_applied": 0,
         "missing": 0,
         "skipped_noise": 0,
+        "suffix_stripped": 0,
         "ambiguous": [],
         "filters": {
             "ids_file": args.ids_file,
@@ -285,6 +304,7 @@ def main():
             "mode": args.mode,
             "poi_threshold": args.poi_threshold,
             "citylimit": args.citylimit,
+            "strip_pending_suffix": bool(args.strip_pending_suffix),
         },
     }
 
@@ -415,6 +435,14 @@ def main():
             report["geo_applied"] += 1
         if poi_used:
             report["poi_applied"] += 1
+
+        if args.strip_pending_suffix:
+            before_name = item.get("name")
+            before_address = item.get("address")
+            item["name"] = strip_pending_coord_suffix(before_name)
+            item["address"] = strip_pending_coord_suffix(before_address)
+            if item.get("name") != before_name or item.get("address") != before_address:
+                report["suffix_stripped"] += 1
 
         if args.checkpoint and updated_since_checkpoint >= args.checkpoint:
             flush()

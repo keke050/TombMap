@@ -11,7 +11,9 @@ import CommentsPanel from './CommentsPanel';
 import DetailCard from './DetailCard';
 import FamousTombCarousel from './FamousTombCarousel';
 import HotSearchPanel from './HotSearchPanel';
+import OfficialHeritageLinks from './OfficialHeritageLinks';
 import SearchRankPanel from './SearchRankPanel';
+import TopicCollectionsGrid from './TopicCollectionsGrid';
 import UserMenuGate from './UserMenuGate';
 
 const MapView = dynamic(() => import('./MapView'), { ssr: false });
@@ -32,6 +34,7 @@ type MarkerPoint = {
 type SearchPatch = Partial<{
   keyword: string;
   person: string;
+  era: string;
   province: string;
   city: string;
   county: string;
@@ -66,6 +69,31 @@ const levelLabel: Record<string, string> = {
   county: '县级',
   external: '外部/百科'
 };
+
+const dynastyOptions = [
+  '先秦',
+  '春秋',
+  '战国',
+  '秦',
+  '西汉',
+  '东汉',
+  '汉',
+  '三国',
+  '魏晋',
+  '南北朝',
+  '隋',
+  '唐',
+  '五代',
+  '北宋',
+  '南宋',
+  '宋',
+  '辽',
+  '金',
+  '元',
+  '明',
+  '清',
+  '民国'
+];
 
 const normalizeAdminToken = (value: string) => value.trim().replace(/\*+$/g, '');
 
@@ -124,6 +152,7 @@ export default function MapShell() {
   const [resultProvinceFilter, setResultProvinceFilter] = useState<string | null>(null);
   const [keyword, setKeyword] = useState('');
   const [person, setPerson] = useState('');
+  const [era, setEra] = useState('');
   const [province, setProvince] = useState('');
   const [city, setCity] = useState('');
   const [county, setCounty] = useState('');
@@ -145,25 +174,38 @@ export default function MapShell() {
   const [rankRefreshToken, setRankRefreshToken] = useState(0);
   const lastNearbyKeyRef = useRef<string | null>(null);
   const lastViewportKeyRef = useRef<string | null>(null);
+  const viewportResultCacheRef = useRef<Map<string, MarkerPoint[]>>(new Map());
   const viewportAbortRef = useRef<AbortController | null>(null);
+  const overallTotalDisplay = overallStats
+    ? overallStats.total >= 10000
+      ? '10000+'
+      : overallStats.total.toLocaleString()
+    : isOverallStatsLoading
+      ? '…'
+      : '—';
 
   const statsView = useMemo(() => stats ?? buildStats(tombs), [stats, tombs]);
   const hasNameQuery = useMemo(() => Boolean(person.trim() || keyword.trim()), [person, keyword]);
   const hasSearchFilters = useMemo(
-    () => Boolean(person.trim() || keyword.trim() || province || city || county || level || nearby),
-    [city, county, keyword, level, nearby, person, province]
+    () => Boolean(person.trim() || keyword.trim() || era.trim() || province || city || county || level || nearby),
+    [city, county, era, keyword, level, nearby, person, province]
   );
-  const anchorTomb = useMemo(() => (tombs.length === 1 ? tombs[0] : null), [tombs]);
+  const anchorTomb = useMemo(() => {
+    if (selectedId) {
+      return tombs.find((tomb) => tomb.id === selectedId) ?? nearbyTombs.find((tomb) => tomb.id === selectedId) ?? null;
+    }
+    return tombs.length === 1 ? tombs[0] : null;
+  }, [nearbyTombs, selectedId, tombs]);
   const shouldLoadNearby = useMemo(
-    () => Boolean(hasNameQuery && hasSearched && !nearby && anchorTomb),
-    [hasNameQuery, hasSearched, nearby, anchorTomb]
+    () => Boolean(hasSearched && !nearby && anchorTomb && (focusSelected || hasNameQuery || tombs.length === 1)),
+    [anchorTomb, focusSelected, hasNameQuery, hasSearched, nearby, tombs.length]
   );
   const mapTombs = useMemo(() => {
     if (!shouldLoadNearby || nearbyTombs.length === 0) return tombs;
     const existing = new Set(tombs.map((tomb) => tomb.id));
     return [...tombs, ...nearbyTombs.filter((tomb) => !existing.has(tomb.id))];
   }, [tombs, nearbyTombs, shouldLoadNearby]);
-  const preserveNearbyView = shouldLoadNearby && nearbyTombs.length > 0;
+  const preserveNearbyView = shouldLoadNearby && nearbyTombs.length > 0 && tombs.length === 1;
 
   const filteredTombs = useMemo(() => {
     if (!resultProvinceFilter) return tombs;
@@ -194,10 +236,9 @@ export default function MapShell() {
     const fetchOverallStats = async () => {
       setIsOverallStatsLoading(true);
       const params = new URLSearchParams();
-      params.set('stats', '1');
       if (onlyWithCoords) params.set('hasCoords', '1');
       if (includeExternal) params.set('includeExternal', '1');
-      const response = await fetch(`/api/tombs?${params.toString()}`);
+      const response = await fetch(`/api/tombs/stats?${params.toString()}`, { cache: 'force-cache' });
       if (cancelled) return;
       setIsOverallStatsLoading(false);
       if (!response.ok) return;
@@ -216,6 +257,7 @@ export default function MapShell() {
     setViewportTombs([]);
     lastViewportKeyRef.current = null;
     viewportAbortRef.current?.abort();
+    viewportResultCacheRef.current.clear();
     setIsViewportLoading(false);
   }, [onlyWithCoords, includeExternal]);
 
@@ -243,15 +285,17 @@ export default function MapShell() {
       const decimals = zoom >= 11 ? 4 : zoom >= 9 ? 3 : 2;
       const factor = 10 ** decimals;
       const roundCoord = (value: number) => Math.round(value * factor) / factor;
-      const bboxKey = [
-        roundCoord(bounds.west),
-        roundCoord(bounds.south),
-        roundCoord(bounds.east),
-        roundCoord(bounds.north)
-      ].join(',');
+      const roundedBounds = {
+        west: roundCoord(bounds.west),
+        south: roundCoord(bounds.south),
+        east: roundCoord(bounds.east),
+        north: roundCoord(bounds.north)
+      };
+      const bboxKey = [roundedBounds.west, roundedBounds.south, roundedBounds.east, roundedBounds.north].join(',');
+      const zoomBucket = Math.round(zoom * 10) / 10;
       const key = JSON.stringify({
         bboxKey,
-        zoomBucket: Math.round(zoom * 10) / 10,
+        zoomBucket,
         cluster,
         withName,
         onlyWithCoords,
@@ -263,11 +307,18 @@ export default function MapShell() {
       viewportAbortRef.current?.abort();
       const controller = new AbortController();
       viewportAbortRef.current = controller;
+      const cachedViewport = viewportResultCacheRef.current.get(key);
+      if (cachedViewport) {
+        setViewportTombs(cachedViewport);
+        setIsViewportLoading(false);
+        return;
+      }
+
       setIsViewportLoading(true);
 
       const params = new URLSearchParams();
-      params.set('bbox', `${bounds.west},${bounds.south},${bounds.east},${bounds.north}`);
-      params.set('zoom', String(zoom));
+      params.set('bbox', bboxKey);
+      params.set('zoom', String(zoomBucket));
       if (cluster) params.set('cluster', '1');
       if (withName) params.set('withName', '1');
       if (!cluster) {
@@ -277,14 +328,22 @@ export default function MapShell() {
       if (onlyWithCoords) params.set('hasCoords', '1');
       if (includeExternal) params.set('includeExternal', '1');
 
-      fetch(`/api/tombs/markers?${params.toString()}`, { signal: controller.signal })
+      fetch(`/api/tombs/markers?${params.toString()}`, { signal: controller.signal, cache: 'force-cache' })
         .then((response) => {
           if (!response.ok) return null;
           return response.json();
         })
         .then((data) => {
           if (!data || controller.signal.aborted) return;
-          setViewportTombs(Array.isArray(data?.tombs) ? data.tombs : []);
+          const next = Array.isArray(data?.tombs) ? (data.tombs as MarkerPoint[]) : [];
+          setViewportTombs(next);
+          viewportResultCacheRef.current.set(key, next);
+          const maxEntries = 24;
+          while (viewportResultCacheRef.current.size > maxEntries) {
+            const firstKey = viewportResultCacheRef.current.keys().next().value as string | undefined;
+            if (!firstKey) break;
+            viewportResultCacheRef.current.delete(firstKey);
+          }
         })
         .catch(() => {
         })
@@ -319,6 +378,7 @@ export default function MapShell() {
     viewportAbortRef.current?.abort();
     lastViewportKeyRef.current = null;
     lastNearbyKeyRef.current = null;
+    viewportResultCacheRef.current.clear();
 
     setHasSearched(false);
     setTombs([]);
@@ -331,6 +391,7 @@ export default function MapShell() {
 
     setKeyword('');
     setPerson('');
+    setEra('');
     setProvince('');
     setCity('');
     setCounty('');
@@ -348,6 +409,7 @@ export default function MapShell() {
   const fetchTombs = async (patch?: SearchPatch) => {
     const nextPerson = patch?.person ?? person;
     const nextKeyword = patch?.keyword ?? keyword;
+    const nextEra = patch?.era ?? era;
     const nextProvince = patch?.province ?? province;
     const nextCity = patch?.city ?? city;
     const nextCounty = patch?.county ?? county;
@@ -358,6 +420,7 @@ export default function MapShell() {
     if (patch) {
       if (patch.person !== undefined) setPerson(nextPerson);
       if (patch.keyword !== undefined) setKeyword(nextKeyword);
+      if (patch.era !== undefined) setEra(nextEra);
       if (patch.province !== undefined) setProvince(nextProvince);
       if (patch.city !== undefined) setCity(nextCity);
       if (patch.county !== undefined) setCounty(nextCounty);
@@ -369,7 +432,7 @@ export default function MapShell() {
     const trimmedPerson = nextPerson.trim();
     const trimmedKeyword = nextKeyword.trim();
     const hasInput = Boolean(
-      trimmedPerson || trimmedKeyword || nextProvince || nextCity || nextCounty || nextLevel || nextNearby
+      trimmedPerson || trimmedKeyword || nextEra || nextProvince || nextCity || nextCounty || nextLevel || nextNearby
     );
     const shouldAutoSelectTop = Boolean(trimmedPerson || trimmedKeyword);
     setIsSearching(true);
@@ -379,6 +442,7 @@ export default function MapShell() {
     const params = new URLSearchParams();
     if (q) params.set('q', q);
     if (trimmedPerson) params.set('person', trimmedPerson);
+    if (nextEra) params.set('era', nextEra);
     if (nextProvince) params.set('province', nextProvince);
     if (nextCity) params.set('city', nextCity);
     if (nextCounty) params.set('county', nextCounty);
@@ -479,7 +543,8 @@ export default function MapShell() {
   const buildProvinceHref = (name: string) => `/provinces/${encodeURIComponent(name)}`;
 
   return (
-    <div className="map-shell">
+    <div className="map-page">
+      <div className="map-shell">
       <header className="topbar">
         <div className="brand">
           <div className="brand-identity">
@@ -511,11 +576,25 @@ export default function MapShell() {
           </div>
           <div className="field">
             <label>人物 / 称谓</label>
-            <input value={person} onChange={(e) => setPerson(e.target.value)} placeholder="如：曹操、乾陵" />
+            <input value={person} onChange={(e) => setPerson(e.target.value)} placeholder="如：曹操、李白" />
           </div>
           <div className="field">
             <label>古墓关键词</label>
             <input value={keyword} onChange={(e) => setKeyword(e.target.value)} placeholder="如：陵、墓、冢" />
+          </div>
+          <div className="field">
+            <label>朝代</label>
+            <input
+              list="dynasty-options"
+              value={era}
+              onChange={(e) => setEra(e.target.value)}
+              placeholder="如：唐、东汉、明"
+            />
+            <datalist id="dynasty-options">
+              {dynastyOptions.map((item) => (
+                <option key={item} value={item} />
+              ))}
+            </datalist>
           </div>
           <div className="field">
             <label>省份</label>
@@ -665,7 +744,7 @@ export default function MapShell() {
                 全国已收录
               </span>
               <span className="map-header-value">
-                {overallStats ? overallStats.total.toLocaleString() : isOverallStatsLoading ? '…' : '—'}
+                {overallTotalDisplay}
               </span>
               <span className="map-header-unit">处古墓</span>
               <button
@@ -712,6 +791,7 @@ export default function MapShell() {
           preserveNearbyView={preserveNearbyView}
           focusSelected={focusSelected}
           autoFit={hasSearched}
+          isViewportLoading={!hasSearched && isViewportLoading}
           onViewportChange={handleViewportChange}
           resetKey={resetKey}
         />
@@ -720,21 +800,23 @@ export default function MapShell() {
       <aside className="sidebar right-panel">
         {selectedId ? (
           <>
-            <DetailCard tombId={selectedId} onClose={() => setSelectedId(null)} />
+            <DetailCard tombId={selectedId} onClose={() => setSelectedId(null)} onSelectTomb={handleSelect} />
             <CommentsPanel tombId={selectedId} />
           </>
 	        ) : (
 	          <>
 	            <section className="panel empty-detail">
-	              <HotSearchPanel compact count={12} onApply={(patch) => fetchTombs(patch)} />
-	              <div className="footer-note empty-detail-note">也可以点击左侧结果或地图点位查看古墓详情。</div>
+	              <HotSearchPanel compact count={9} onApply={(patch) => fetchTombs(patch)} />
 	            </section>
-	            <SearchRankPanel onSelect={handleSelect} refreshToken={rankRefreshToken} limit={12} />
+	            <SearchRankPanel onSelect={handleSelect} refreshToken={rankRefreshToken} limit={10} />
 	          </>
 	        )}
-	      </aside>
+      </aside>
+      </div>
 
       <FamousTombCarousel />
+      <TopicCollectionsGrid />
+      <OfficialHeritageLinks />
 
       <footer className="site-footer">
         <div className="footer-left">

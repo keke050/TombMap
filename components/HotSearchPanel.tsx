@@ -19,8 +19,8 @@ const kindLabel: Record<HotSearchItem['type'], string> = {
 
 const chipLayout = (index: number, compact: boolean) => {
   if (compact) {
-    const span = [2, 2, 3, 3, 2, 4, 2, 2, 3, 2, 3, 2][index % 12];
-    const lift = [0, 2, 1, 3, 1, 2][index % 6];
+    const span = 2;
+    const lift = [0, 1, 0, 1, 0, 1][index % 6];
     const accent = index % 3;
     return { span, lift, tilt: 0, accent };
   }
@@ -110,10 +110,11 @@ export default function HotSearchPanel({ onApply, compact = false, count }: HotS
     [dateKey, itemCount, rotate]
   );
   const hiddenIndex = useMemo(
-    () => pickBottomMostIndex({ count: items.length, compact }),
+    () => (compact ? null : pickBottomMostIndex({ count: items.length, compact })),
     [compact, items.length]
   );
   const hiddenId = useMemo(() => {
+    if (compact) return null;
     const liBai = items.find((item) => item.id === 'p-li-bai');
     if (liBai) return liBai.id;
     return null;
@@ -169,6 +170,7 @@ export default function HotSearchPanel({ onApply, compact = false, count }: HotS
                       onApply({
                         person: '',
                         keyword: '',
+                        era: '',
                         province: '',
                         city: '',
                         county: '',

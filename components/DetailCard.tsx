@@ -5,6 +5,7 @@ import { buildAmapNavigationUrl } from '../lib/amap';
 import { buildTombSourceLabel, isHeritageListSource } from '../lib/source';
 import type { TombDetail } from '../lib/types';
 import AutoImage from './AutoImage';
+import RelatedTombsPanel from './RelatedTombsPanel';
 
 const levelLabel: Record<string, string> = {
   national: '国家级',
@@ -14,7 +15,15 @@ const levelLabel: Record<string, string> = {
   external: '外部/百科'
 };
 
-export default function DetailCard({ tombId, onClose }: { tombId: string; onClose: () => void }) {
+export default function DetailCard({
+  tombId,
+  onClose,
+  onSelectTomb
+}: {
+  tombId: string;
+  onClose: () => void;
+  onSelectTomb?: (id: string) => void;
+}) {
   const [detail, setDetail] = useState<TombDetail | null>(null);
   const [loading, setLoading] = useState(false);
   const [liking, setLiking] = useState(false);
@@ -171,10 +180,17 @@ export default function DetailCard({ tombId, onClose }: { tombId: string; onClos
         </div>
       )}
 
-      <div className="inline-actions">
+      <div className="inline-actions detail-card-actions">
         <button className="ghost-button" onClick={() => router.push(`/tombs/${tombId}`)}>查看详情</button>
-        <button className="ghost-button" onClick={onClose}>关闭卡片</button>
+        <button className="ghost-button detail-card-close" onClick={onClose}>关闭卡片</button>
       </div>
+
+      <RelatedTombsPanel
+        items={detail.relatedTombs ?? []}
+        currentId={detail.id}
+        onSelect={onSelectTomb}
+        maxItems={3}
+      />
       {detail.source?.title && (
         <>
           {heritageLevelLabel && <div className="footer-note">文保级别：{heritageLevelLabel}</div>}
