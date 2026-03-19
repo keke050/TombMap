@@ -18,6 +18,7 @@
     "invite:create": "node scripts/create-invite.mjs"
   },
   "dependencies": {
+    "@vercel/speed-insights": "^2.0.0",
     "@vercel/analytics": "^2.0.1",
     "next": "^15.1.0",
     "pg": "^8.11.5",
