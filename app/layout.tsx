@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Noto_Serif_SC, ZCOOL_XiaoWei } from 'next/font/google';
 import { SpeedInsights } from '@vercel/speed-insights/next';
+import { Analytics } from '@vercel/analytics/next';
 import AuthBootstrap from '../components/AuthBootstrap';
 import './globals.css';
 
@@ -34,6 +35,7 @@ export default function RootLayout({
           {children}
         </div>
         <SpeedInsights />
+        <Analytics />
       </body>
     </html>
   );
