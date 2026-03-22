@@ -33,7 +33,10 @@ export default function AutoImage({ images, alt, className }: AutoImageProps) {
     setIndex((prev) => (prev + 1) % list.length);
   };
 
-  const proxyUrl = (url: string) => `/api/image?url=${encodeURIComponent(url)}`;
+  const proxyUrl = (url: string) => {
+    const filename = url.split('/').pop();
+    return `https://tombimage-1412507290.cos.ap-shanghai.myqcloud.com/${filename}`;
+  };
 
   return (
     <div className={`${className ?? ''} auto-image`.trim()}>

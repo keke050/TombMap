@@ -60,7 +60,10 @@ export default function FamousTombCarousel() {
   const timerRef = useRef<number | null>(null);
   const router = useRouter();
 
-  const proxyUrl = (url: string) => `/api/image?url=${encodeURIComponent(url)}`;
+  const proxyUrl = (url: string) => {
+    const filename = url.split('/').pop();
+    return `https://tombimage-1412507290.cos.ap-shanghai.myqcloud.com/${filename}`;
+  };
 
   const active = items.length ? items[Math.max(0, Math.min(activeIndex, items.length - 1))] : null;
   const subtitle = useMemo(() => (active ? buildSubtitle(active) : ''), [active]);
