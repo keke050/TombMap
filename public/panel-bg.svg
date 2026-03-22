@@ -1,0 +1,22 @@
+<svg width="900" height="900" viewBox="0 0 900 900" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="mist" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f6f3ee" stop-opacity="0"/>
+      <stop offset="1" stop-color="#e9e3da" stop-opacity="0.6"/>
+    </linearGradient>
+  </defs>
+  <rect width="900" height="900" fill="url(#mist)"/>
+  <path d="M60 520C140 440 240 400 340 420C420 436 480 470 560 470C650 470 730 430 840 360L900 420V900H0V560C20 545 40 533 60 520Z" fill="#e3ddd4" opacity="0.5"/>
+  <path d="M80 600C160 520 260 480 360 500C430 514 520 560 610 560C700 560 780 520 860 470L900 520V900H0V640C30 620 55 610 80 600Z" fill="#ded7cd" opacity="0.45"/>
+  <path d="M120 700C210 640 300 620 400 640C480 655 560 690 650 690C740 690 820 660 880 620L900 660V900H0V750C40 730 80 715 120 700Z" fill="#d8d0c6" opacity="0.4"/>
+  <path d="M110 520C200 470 270 460 350 470C440 482 520 520 610 520C700 520 790 500 860 450" stroke="#b9b1a7" stroke-width="2.4" stroke-linecap="round" opacity="0.45"/>
+  <path d="M140 640C220 600 290 590 370 600C450 612 530 640 620 640C710 640 790 620 860 580" stroke="#b3aba1" stroke-width="2.2" stroke-linecap="round" opacity="0.4"/>
+  <path d="M160 760C240 730 320 720 400 730C500 744 580 770 680 770C760 770 820 750 880 720" stroke="#b0a89d" stroke-width="2" stroke-linecap="round" opacity="0.35"/>
+  <path d="M210 540C230 520 260 510 290 520C305 525 320 540 340 540" stroke="#9aa4a9" stroke-width="4" stroke-linecap="round" opacity="0.6"/>
+  <path d="M340 540C380 560 420 580 480 590C540 600 610 600 700 590" stroke="#9aa4a9" stroke-width="3.5" stroke-linecap="round" opacity="0.55"/>
+  <path d="M700 590C760 584 820 570 880 548" stroke="#9aa4a9" stroke-width="3.2" stroke-linecap="round" opacity="0.5"/>
+  <path d="M140 680C130 660 120 650 105 642" stroke="#9c9a92" stroke-width="2" stroke-linecap="round" opacity="0.4"/>
+  <circle cx="140" cy="690" r="3.5" fill="#9c9a92" opacity="0.4"/>
+  <path d="M660 360C690 330 730 320 770 330C800 338 820 356 845 356" stroke="#8f9a9f" stroke-width="4" stroke-linecap="round" opacity="0.45"/>
+  <path d="M845 356C865 356 885 350 900 340" stroke="#8f9a9f" stroke-width="3" stroke-linecap="round" opacity="0.4"/>
+</svg>

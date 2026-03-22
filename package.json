@@ -1,0 +1,41 @@
+{
+  "name": "combmap",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "WATCHPACK_POLLING=true next dev --port 3001",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "db:init": "psql $DATABASE_URL -f scripts/sql/init.sql",
+    "db:seed": "node scripts/seed.mjs",
+    "data:ingest:city": "python3 scripts/ingest/city_ingest.py",
+    "data:ingest:national": "python3 scripts/ingest/national_8th.py",
+    "data:ingest:henan": "python3 scripts/ingest/henan_8th_ocr.py",
+    "data:ingest:shaanxi": "python3 scripts/ingest/shaanxi_6th.py",
+    "geo:download": "node scripts/download-geo.mjs",
+    "invite:create": "node scripts/create-invite.mjs"
+  },
+  "dependencies": {
+    "@vercel/analytics": "^2.0.1",
+    "@vercel/speed-insights": "^2.0.0",
+    "next": "^15.1.0",
+    "pg": "^8.11.5",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "sharp": "^0.34.5",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.30",
+    "@types/react": "^19.0.10",
+    "@types/react-dom": "^19.0.4",
+    "eslint": "9.39.4",
+    "eslint-config-next": "16.1.6",
+    "typescript": "^5.4.5"
+  },
+  "engines": {
+    "node": ">=18.18"
+  }
+}

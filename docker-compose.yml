@@ -1,0 +1,56 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-combmap}
+      POSTGRES_USER: ${POSTGRES_USER:-combmap}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set in .env.production}
+    volumes:
+      - combmap_db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+  web:
+    build:
+      context: .
+      args:
+        NEXT_PUBLIC_AMAP_KEY: ${NEXT_PUBLIC_AMAP_KEY:?}
+        NEXT_PUBLIC_AMAP_SECURITY: ${NEXT_PUBLIC_AMAP_SECURITY:?}
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      HOSTNAME: 0.0.0.0
+      DATABASE_URL: ${DATABASE_URL:-postgresql://${POSTGRES_USER:-combmap}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-combmap}}
+      NEXT_PUBLIC_AMAP_KEY: ${NEXT_PUBLIC_AMAP_KEY:?}
+      NEXT_PUBLIC_AMAP_SECURITY: ${NEXT_PUBLIC_AMAP_SECURITY:?}
+      AMAP_WEB_KEY: ${AMAP_WEB_KEY:?}
+      SERPAPI_KEY: ${SERPAPI_KEY:?}
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  caddy:
+    image: caddy:2-alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      DOMAIN: ${DOMAIN:?}
+      CADDY_EMAIL: ${CADDY_EMAIL:?}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - web
+    restart: unless-stopped
+
+volumes:
+  combmap_db:
+  caddy_data:
+  caddy_config:
