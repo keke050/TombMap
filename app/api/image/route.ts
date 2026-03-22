@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
       })
       .toBuffer();
 
-    return new NextResponse(croppedBuffer, {
+    return new NextResponse(croppedBuffer as unknown as BodyInit, {
       headers: {
         'Content-Type': 'image/jpeg',
         'Cache-Control': 'public, max-age=31536000, immutable',
