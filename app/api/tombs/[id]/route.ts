@@ -16,17 +16,38 @@ type TombDetailPayload = {
   tomb: TombDetail;
 };
 
-const detailCache = new Map<string, { ts: number; payload: TombDetailPayload }>();
+const detailCache = new Map<string, { ts: number; base?: TombDetailPayload; rich?: TombDetailPayload }>();
 
 const isFresh = (timestamp: number) => Date.now() - timestamp < DETAIL_CACHE_TTL;
 
-const setCachedDetail = (id: string, payload: TombDetailPayload) => {
-  detailCache.set(id, { ts: Date.now(), payload });
+const setCachedDetail = (id: string, payload: TombDetailPayload, rich: boolean) => {
+  const existing = detailCache.get(id);
+  detailCache.set(
+    id,
+    rich
+      ? {
+          ts: Date.now(),
+          base: existing?.base,
+          rich: payload
+        }
+      : {
+          ts: Date.now(),
+          base: payload,
+          rich: existing?.rich
+        }
+  );
   while (detailCache.size > DETAIL_CACHE_MAX_ENTRIES) {
     const firstKey = detailCache.keys().next().value as string | undefined;
     if (!firstKey) break;
     detailCache.delete(firstKey);
   }
+};
+
+const getCachedDetail = (id: string, rich: boolean) => {
+  const cached = detailCache.get(id);
+  if (!cached || !isFresh(cached.ts)) return null;
+  if (rich) return cached.rich ?? null;
+  return cached.rich ?? cached.base ?? null;
 };
 
 const buildAnonymousCacheHeaders = () => ({
@@ -50,7 +71,7 @@ const buildBriefSummary = (text?: string | null) => {
   return `${chars.slice(0, 80).join('')}…`;
 };
 
-const buildPublicPayload = async (detail: TombDetail): Promise<TombDetailPayload> => {
+const buildRichPayload = async (detail: TombDetail): Promise<TombDetailPayload> => {
   const inferredPerson = detail.person ?? inferPersonFromName(detail.name);
   const summaryQueries = buildSummaryQueries(detail.name, inferredPerson);
   const summaryQuery = summaryQueries[0] || detail.name || inferredPerson || '';
@@ -86,6 +107,16 @@ const buildPublicPayload = async (detail: TombDetail): Promise<TombDetailPayload
   };
 };
 
+const buildBasePayload = (detail: TombDetail): TombDetailPayload => ({
+  tomb: {
+    ...detail,
+    relatedTombs: [],
+    favorited: false,
+    liked: false,
+    checkedIn: false
+  }
+});
+
 export async function GET(
   request: Request,
   context: { params: Promise<{ id?: string | string[] }> }
@@ -96,9 +127,10 @@ export async function GET(
     return NextResponse.json({ error: '缺少 id 参数' }, { status: 400 });
   }
 
+  const requestUrl = new URL(request.url);
+  const rich = requestUrl.searchParams.get('rich') === '1';
   const userId = await readUserId();
-  const cached = detailCache.get(tombId);
-  const cachedPublicPayload = cached && isFresh(cached.ts) ? cached.payload : null;
+  const cachedPublicPayload = getCachedDetail(tombId, rich);
 
   if (!userId && cachedPublicPayload) {
     return NextResponse.json(cachedPublicPayload, { headers: buildAnonymousCacheHeaders() });
@@ -110,8 +142,8 @@ export async function GET(
     if (!detail) {
       return NextResponse.json({ error: '未找到' }, { status: 404 });
     }
-    payload = await buildPublicPayload(detail);
-    setCachedDetail(tombId, payload);
+    payload = rich ? await buildRichPayload(detail) : buildBasePayload(detail);
+    setCachedDetail(tombId, payload, rich);
   }
 
   if (!userId) {

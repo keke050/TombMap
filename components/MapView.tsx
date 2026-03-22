@@ -578,7 +578,7 @@ export default function MapView({
       cancelled = true;
       created.forEach((marker) => mapRef.current?.remove?.(marker));
     };
-  }, [points, onSelect, mapReady, autoFit, preserveNearbyView, shouldUseMassMarks, mapZoom]);
+  }, [points, onSelect, mapReady, autoFit, preserveNearbyView, shouldUseMassMarks]);
 
   useEffect(() => {
     if (!mapRef.current || !mapReady) return;
@@ -748,7 +748,6 @@ export default function MapView({
       .map((item) => {
         const countRaw = typeof item.count === 'number' ? item.count : 1;
         const count = Number.isFinite(countRaw) && countRaw > 0 ? countRaw : 1;
-        if (count <= 1 && item.id && item.id === selectedId) return null;
         return {
           id: count <= 1 ? item.id : undefined,
           lnglat: [item.lng, item.lat],
@@ -768,7 +767,7 @@ export default function MapView({
       )
       .filter((item) => item.lnglat[0] != null && item.lnglat[1] != null);
     massMarksRef.current.setData(data);
-  }, [points, mapZoom, mapReady, shouldUseMassMarks, selectedId]);
+  }, [points, mapZoom, mapReady, shouldUseMassMarks]);
 
   useEffect(() => {
     if (!mapRef.current || !mapReady) return;

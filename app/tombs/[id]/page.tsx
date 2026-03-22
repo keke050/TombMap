@@ -1,11 +1,12 @@
 import Link from 'next/link';
+import { Suspense } from 'react';
 import AutoImage from '../../../components/AutoImage';
 import FavoriteButton from '../../../components/FavoriteButton';
 import RelatedTombsPanel from '../../../components/RelatedTombsPanel';
 import UserMenuGate from '../../../components/UserMenuGate';
 import { buildAmapNavigationUrl } from '../../../lib/amap';
-import { fetchRichImages, fetchRichSummary } from '../../../lib/media';
-import { buildImageQueries, buildSummaryQueries, inferPersonFromName } from '../../../lib/utils';
+import { fetchRichSummary } from '../../../lib/media';
+import { buildSummaryQueries, inferPersonFromName } from '../../../lib/utils';
 import { getTombDetail, listRelatedTombs, recordTombSummary } from '../../../lib/data';
 import { readSegmentParam } from '../../../lib/nextParams';
 
@@ -22,18 +23,39 @@ const levelLabel: Record<string, string> = {
   province: '省级'
 };
 
-const mergeDisplayImages = (
-  primary: Array<{ url: string; source: string }> = [],
-  secondary: Array<{ url: string; source: string }> = []
-) => {
-  const seen = new Set<string>();
-  return [...primary, ...secondary].filter((item) => {
-    const url = item?.url?.trim();
-    if (!url || seen.has(url)) return false;
-    seen.add(url);
-    return true;
+async function SummarySection({ detail }: { detail: NonNullable<Awaited<ReturnType<typeof getTombDetail>>> }) {
+  const inferredPerson = detail.person ?? inferPersonFromName(detail.name);
+  const summaryQueries = buildSummaryQueries(detail.name, inferredPerson);
+  const summaryQuery = summaryQueries[0] || detail.name || inferredPerson || '';
+  const summaryFallbacks = summaryQueries.slice(1);
+  const summary = await fetchRichSummary(summaryQuery, summaryFallbacks, {
+    name: detail.name,
+    person: detail.person,
+    aliases: detail.aliases
   });
-};
+  recordTombSummary(detail, summary);
+
+  if (!summary?.extract) return null;
+
+  return (
+    <section className="detail-page-section">
+      <h3>简介</h3>
+      <p>{summary.extract}</p>
+      {summary.url && (
+        <p>
+          <a href={summary.url} target="_blank" rel="noreferrer">
+            资料来源：{summary.source} · {summary.title}
+          </a>
+        </p>
+      )}
+    </section>
+  );
+}
+
+async function RelatedSection({ detail }: { detail: NonNullable<Awaited<ReturnType<typeof getTombDetail>>> }) {
+  const relatedTombs = await listRelatedTombs(detail, 8);
+  return <RelatedTombsPanel items={relatedTombs} currentId={detail.id} maxItems={3} />;
+}
 
 export default async function TombDetailPage({ params }: { params?: Promise<{ id?: string | string[] }> }) {
   const resolvedParams = await params;
@@ -60,25 +82,6 @@ export default async function TombDetailPage({ params }: { params?: Promise<{ id
       </div>
     );
   }
-
-  const inferredPerson = detail.person ?? inferPersonFromName(detail.name);
-  const summaryQueries = buildSummaryQueries(detail.name, inferredPerson);
-  const summaryQuery = summaryQueries[0] || detail.name || inferredPerson || '';
-  const summaryFallbacks = summaryQueries.slice(1);
-  const imageQueries = buildImageQueries(detail.name, inferredPerson);
-  const imageQuery = imageQueries[0] ?? '';
-  const imageFallbacks = imageQueries.slice(1);
-  const [summary, remoteImages, relatedTombs] = await Promise.all([
-    fetchRichSummary(summaryQuery, summaryFallbacks, {
-      name: detail.name,
-      person: detail.person,
-      aliases: detail.aliases
-    }),
-    fetchRichImages(imageQuery, imageFallbacks),
-    listRelatedTombs(detail, 8)
-  ]);
-  recordTombSummary(detail, summary);
-  const images = mergeDisplayImages(detail.images, remoteImages);
 
   const levelText = detail.level ? (levelLabel[detail.level] ?? detail.level) : '';
   const navUrl =
@@ -113,21 +116,18 @@ export default async function TombDetailPage({ params }: { params?: Promise<{ id
           </div>
         </div>
 
-        <AutoImage images={images} alt={detail.name} className="detail-page-image" />
+        <AutoImage images={detail.images} alt={detail.name} className="detail-page-image" />
 
-        {summary?.extract && (
-          <section className="detail-page-section">
-            <h3>简介</h3>
-            <p>{summary.extract}</p>
-            {summary.url && (
-              <p>
-                <a href={summary.url} target="_blank" rel="noreferrer">
-                  资料来源：{summary.source} · {summary.title}
-                </a>
-              </p>
-            )}
-          </section>
-        )}
+        <Suspense
+          fallback={
+            <section className="detail-page-section">
+              <h3>简介</h3>
+              <p>简介加载中…</p>
+            </section>
+          }
+        >
+          <SummarySection detail={detail} />
+        </Suspense>
 
         <section className="detail-page-section">
           <h3>文保信息</h3>
@@ -141,7 +141,16 @@ export default async function TombDetailPage({ params }: { params?: Promise<{ id
           </ul>
         </section>
 
-        <RelatedTombsPanel items={relatedTombs} currentId={detail.id} maxItems={3} />
+        <Suspense
+          fallback={
+            <section className="detail-page-section">
+              <h3>相关推荐</h3>
+              <p>相关推荐加载中…</p>
+            </section>
+          }
+        >
+          <RelatedSection detail={detail} />
+        </Suspense>
       </div>
     </div>
   );

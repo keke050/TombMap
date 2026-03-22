@@ -25,6 +25,9 @@ const querySchema = z.object({
 
 const CACHE_TTL = 1000 * 60 * 30;
 const markersCache = new Map<string, { ts: number; tombs: Array<Required<Pick<MarkerPoint, 'id' | 'lat' | 'lng'>> & { name?: string }> }>();
+const VIEWPORT_CACHE_TTL = 1000 * 60 * 5;
+const VIEWPORT_CACHE_MAX_ENTRIES = 160;
+const viewportCache = new Map<string, { ts: number; tombs: MarkerPoint[] }>();
 
 const clampLimit = (value: number, fallback: number) => {
   if (Number.isNaN(value) || value <= 0) return fallback;
@@ -40,6 +43,16 @@ const toMarker = (tomb: Tomb): (Required<Pick<MarkerPoint, 'id' | 'lat' | 'lng'>
 };
 
 const isFresh = (timestamp: number) => Date.now() - timestamp < CACHE_TTL;
+const isViewportFresh = (timestamp: number) => Date.now() - timestamp < VIEWPORT_CACHE_TTL;
+
+const setViewportCache = (key: string, tombs: MarkerPoint[]) => {
+  viewportCache.set(key, { ts: Date.now(), tombs });
+  while (viewportCache.size > VIEWPORT_CACHE_MAX_ENTRIES) {
+    const firstKey = viewportCache.keys().next().value as string | undefined;
+    if (!firstKey) break;
+    viewportCache.delete(firstKey);
+  }
+};
 
 const parseBbox = (value?: string | null) => {
   if (!value) return null;
@@ -141,6 +154,20 @@ export async function GET(request: Request) {
   const bbox = parseBbox(parsed.data.bbox);
   const zoom = parsed.data.zoom ? Number(parsed.data.zoom) : 0;
   const shouldCluster = parsed.data.cluster === '1';
+  const viewportKey = JSON.stringify({
+    limit,
+    includeExternal,
+    hasCoords,
+    withName,
+    zoom: Number.isFinite(zoom) ? Math.round(zoom * 10) / 10 : 0,
+    cluster: shouldCluster,
+    bbox: bbox ? [bbox.west, bbox.south, bbox.east, bbox.north] : null
+  });
+
+  const cachedViewport = viewportCache.get(viewportKey);
+  if (cachedViewport && isViewportFresh(cachedViewport.ts)) {
+    return NextResponse.json({ tombs: cachedViewport.tombs }, { headers: buildCacheHeaders() });
+  }
 
   const cacheKey = JSON.stringify({ limit, includeExternal, hasCoords });
   const cached = markersCache.get(cacheKey);
@@ -149,6 +176,7 @@ export async function GET(request: Request) {
     const tombs = shouldCluster && bbox
       ? buildClusters(filtered, bbox, Number.isFinite(zoom) ? zoom : 0, withName, limit)
       : filtered.map((item) => ({ id: item.id, lat: item.lat, lng: item.lng, name: withName ? item.name : undefined }));
+    setViewportCache(viewportKey, tombs);
     return NextResponse.json({ tombs }, { headers: buildCacheHeaders() });
   }
 
@@ -177,6 +205,7 @@ export async function GET(request: Request) {
   const responseTombs = shouldCluster && bbox
     ? buildClusters(filtered, bbox, Number.isFinite(zoom) ? zoom : 0, withName, limit)
     : filtered.map((item) => ({ id: item.id, lat: item.lat, lng: item.lng, name: withName ? item.name : undefined }));
+  setViewportCache(viewportKey, responseTombs);
 
   return NextResponse.json(
     { tombs: responseTombs },

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import { prefetchTombDetail } from '../lib/tombDetailPrefetch';
 
 type RankItem = {
   id: string;
@@ -99,6 +100,8 @@ export default function SearchRankPanel({
                 type="button"
                 className="result-item rank-item"
                 onClick={() => onSelect(item.id)}
+                onMouseEnter={() => prefetchTombDetail(item.id)}
+                onFocus={() => prefetchTombDetail(item.id)}
                 title="点击查看详情"
               >
                 <div className="rank-row">

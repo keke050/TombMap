@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 type FeaturedTomb = {
@@ -57,6 +58,7 @@ export default function FamousTombCarousel() {
   const [activeIndex, setActiveIndex] = useState(0);
   const [isLoaded, setIsLoaded] = useState(false);
   const timerRef = useRef<number | null>(null);
+  const router = useRouter();
 
   const active = items.length ? items[Math.max(0, Math.min(activeIndex, items.length - 1))] : null;
   const subtitle = useMemo(() => (active ? buildSubtitle(active) : ''), [active]);
@@ -174,7 +176,12 @@ export default function FamousTombCarousel() {
         </div>
       </div>
 
-      <Link className="featured-card" href={`/tombs/${active.id}`}>
+      <Link
+        className="featured-card"
+        href={`/tombs/${active.id}`}
+        onMouseEnter={() => void router.prefetch(`/tombs/${active.id}`)}
+        onFocus={() => void router.prefetch(`/tombs/${active.id}`)}
+      >
         <div className="featured-card-image">
           <img src={active.coverUrl} alt={active.name} onError={handleImageError} loading="eager" />
         </div>

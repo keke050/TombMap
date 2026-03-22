@@ -1,7 +1,9 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import type { Tomb } from '../lib/types';
+import { prefetchTombDetail } from '../lib/tombDetailPrefetch';
 
 const levelLabel: Record<string, string> = {
   national: '国家级',
@@ -34,6 +36,7 @@ export default function RelatedTombsPanel({
   onSelect?: (id: string) => void;
   maxItems?: number;
 }) {
+  const router = useRouter();
   const visibleItems = items.filter((item) => item.id !== currentId).slice(0, Math.max(1, maxItems));
   if (!visibleItems.length) return null;
 
@@ -48,12 +51,20 @@ export default function RelatedTombsPanel({
               type="button"
               className={`result-item related-item-button ${item.id === currentId ? 'active' : ''}`}
               onClick={() => onSelect(item.id)}
+              onMouseEnter={() => prefetchTombDetail(item.id)}
+              onFocus={() => prefetchTombDetail(item.id)}
             >
               <div className="result-title">{item.name}</div>
               <div className="result-meta">{buildMeta(item)}</div>
             </button>
           ) : (
-            <Link key={item.id} className="result-item province-item" href={`/tombs/${item.id}`}>
+            <Link
+              key={item.id}
+              className="result-item province-item"
+              href={`/tombs/${item.id}`}
+              onMouseEnter={() => void router.prefetch(`/tombs/${item.id}`)}
+              onFocus={() => void router.prefetch(`/tombs/${item.id}`)}
+            >
               <div className="result-title">{item.name}</div>
               <div className="result-meta">{buildMeta(item)}</div>
             </Link>

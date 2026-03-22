@@ -15,6 +15,7 @@ import OfficialHeritageLinks from './OfficialHeritageLinks';
 import SearchRankPanel from './SearchRankPanel';
 import TopicCollectionsGrid from './TopicCollectionsGrid';
 import UserMenuGate from './UserMenuGate';
+import { prefetchTombDetail } from '../lib/tombDetailPrefetch';
 
 const MapView = dynamic(() => import('./MapView'), { ssr: false });
 
@@ -196,6 +197,10 @@ export default function MapShell() {
     }
     return tombs.length === 1 ? tombs[0] : null;
   }, [nearbyTombs, selectedId, tombs]);
+  const selectedTomb = useMemo(() => {
+    if (!selectedId) return null;
+    return tombs.find((tomb) => tomb.id === selectedId) ?? nearbyTombs.find((tomb) => tomb.id === selectedId) ?? null;
+  }, [nearbyTombs, selectedId, tombs]);
   const shouldLoadNearby = useMemo(
     () => Boolean(hasSearched && !nearby && anchorTomb && (focusSelected || hasNameQuery || tombs.length === 1)),
     [anchorTomb, focusSelected, hasNameQuery, hasSearched, nearby, tombs.length]
@@ -277,12 +282,12 @@ export default function MapShell() {
 
       const zoom = payload.zoom ?? 0;
       const bounds = payload.bounds;
-      const detailZoom = 6.0;
-      const labelZoom = 6.0;
+      const detailZoom = 7.1;
+      const labelZoom = 7.6;
       const cluster = zoom < detailZoom;
       const withName = zoom >= labelZoom;
 
-      const decimals = zoom >= 11 ? 4 : zoom >= 9 ? 3 : 2;
+      const decimals = zoom >= 11 ? 4 : zoom >= 9 ? 3 : zoom >= 7 ? 2 : 1;
       const factor = 10 ** decimals;
       const roundCoord = (value: number) => Math.round(value * factor) / factor;
       const roundedBounds = {
@@ -292,7 +297,7 @@ export default function MapShell() {
         north: roundCoord(bounds.north)
       };
       const bboxKey = [roundedBounds.west, roundedBounds.south, roundedBounds.east, roundedBounds.north].join(',');
-      const zoomBucket = Math.round(zoom * 10) / 10;
+      const zoomBucket = zoom < 7.5 ? Math.round(zoom * 2) / 2 : Math.round(zoom * 10) / 10;
       const key = JSON.stringify({
         bboxKey,
         zoomBucket,
@@ -322,7 +327,7 @@ export default function MapShell() {
       if (cluster) params.set('cluster', '1');
       if (withName) params.set('withName', '1');
       if (!cluster) {
-        const limit = zoom < 9.9 ? 18_000 : zoom < 10.7 ? 30_000 : 60_000;
+        const limit = zoom < 8.6 ? 8_000 : zoom < 9.8 ? 16_000 : zoom < 10.7 ? 28_000 : 42_000;
         params.set('limit', String(limit));
       }
       if (onlyWithCoords) params.set('hasCoords', '1');
@@ -367,6 +372,7 @@ export default function MapShell() {
 
   const handleSelect = useCallback(
     (id: string) => {
+      prefetchTombDetail(id);
       setSelectedId(id);
       setFocusSelected(true);
       trackSearchHit(id);
@@ -712,10 +718,13 @@ export default function MapShell() {
             {hasSearched && filteredTombs.map((tomb) => {
               const prefectureLabel = buildPrefectureLabel(tomb);
               return (
-                <div
+                <button
                   key={tomb.id}
+                  type="button"
                   className={`result-item ${selectedId === tomb.id ? 'active' : ''}`}
                   onClick={() => handleSelect(tomb.id)}
+                  onMouseEnter={() => prefetchTombDetail(tomb.id)}
+                  onFocus={() => prefetchTombDetail(tomb.id)}
                 >
                   <div className="result-title">{tomb.name}</div>
                   <div className="result-meta">
@@ -729,7 +738,7 @@ export default function MapShell() {
                         : ''}
                     {tomb.level === 'external' ? ' · 外部来源/临时数据' : ''}
                   </div>
-                </div>
+                </button>
               );
             })}
           </div>
@@ -800,7 +809,12 @@ export default function MapShell() {
       <aside className="sidebar right-panel">
         {selectedId ? (
           <>
-            <DetailCard tombId={selectedId} onClose={() => setSelectedId(null)} onSelectTomb={handleSelect} />
+            <DetailCard
+              tombId={selectedId}
+              onClose={() => setSelectedId(null)}
+              onSelectTomb={handleSelect}
+              initialTomb={selectedTomb}
+            />
             <CommentsPanel tombId={selectedId} />
           </>
 	        ) : (
