@@ -29,6 +29,15 @@ body {
 
 html {
   height: 100%;
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  height: 100%;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
 }
 
 .app-shell {
@@ -1853,23 +1862,52 @@ html {
   .map-shell {
     grid-template-columns: 1fr;
     grid-template-rows: auto auto 1fr auto auto;
+    height: calc(100vh - 48px);
+    height: calc(100svh - 48px);
+    height: calc(100dvh - 48px);
   }
 
   .sidebar {
     flex-direction: row;
-    overflow: auto;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x mandatory;
+    gap: 12px;
+    padding-bottom: 4px;
+  }
+
+  .sidebar > .panel,
+  .sidebar > .detail-card {
+    flex: 0 0 280px;
+    scroll-snap-align: start;
+    min-width: 260px;
   }
 
   .right-panel {
-    flex-direction: column;
+    flex-direction: row;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x mandatory;
+    gap: 12px;
+    padding-bottom: 4px;
   }
 
-  .panel {
-    min-width: 260px;
+  .right-panel > .panel,
+  .right-panel > .detail-card,
+  .right-panel > section {
+    flex: 0 0 300px;
+    scroll-snap-align: start;
   }
 
   .map-stage {
     min-height: 0;
+    height: 100%;
+  }
+
+  .panel {
+    min-width: 260px;
   }
 
   .site-footer {
@@ -1901,40 +1939,295 @@ html {
   .featured-card-image {
     height: 190px;
   }
+
+  .brand {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .brand-nav {
+    transform: none;
+    justify-content: flex-start;
+    padding-left: 0;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    gap: 8px;
+  }
+
+  .brand-nav::-webkit-scrollbar {
+    display: none;
+  }
+
+  .map-header-provinces {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 4px;
+  }
+
+  .map-header-provinces::-webkit-scrollbar {
+    display: none;
+  }
+
+  .brand-logo {
+    width: 64px;
+    height: 64px;
+  }
+
+  .brand-title {
+    font-size: 22px;
+  }
+
+  .category-chip {
+    white-space: nowrap;
+  }
 }
 
+/* ─── Mobile (≤720px) ─── */
 @media (max-width: 720px) {
+  /* Page & Shell */
+  .map-page {
+    padding: 12px;
+    gap: 10px;
+  }
+
+  .map-shell {
+    height: calc(100dvh - 24px);
+    height: calc(100svh - 24px);
+    min-height: 0;
+    overflow: hidden;
+    grid-template-rows: auto auto 1fr auto;
+    gap: 10px;
+  }
+
+  /* Topbar */
   .topbar {
     flex-direction: column;
     align-items: flex-start;
-    gap: 12px;
+    gap: 10px;
+    padding: 14px 16px;
+  }
+
+  .topbar-actions {
+    width: 100%;
+    justify-content: flex-end;
   }
 
   .brand {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    width: 100%;
+  }
+
+  .brand-identity {
     width: 100%;
   }
 
   .brand-nav {
     width: 100%;
     transform: none;
+    padding-left: 0;
+    gap: 6px;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 2px;
   }
 
-  .map-page {
-    padding: 16px;
+  .brand-nav::-webkit-scrollbar { display: none; }
+
+  .brand-logo { width: 56px; height: 56px; }
+  .brand-title { font-size: 20px; }
+  .brand-sub { font-size: 11px; }
+
+  .category-chip {
+    flex-shrink: 0;
+    padding: 6px 12px;
+    font-size: 11px;
+    white-space: nowrap;
   }
 
-  .map-shell {
-    height: calc(100vh - 32px);
-    height: calc(100svh - 32px);
-    height: calc(100dvh - 32px);
+  /* Sidebars → horizontal scroll strips */
+  .sidebar {
+    flex-direction: row;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x mandatory;
+    gap: 10px;
+    padding-bottom: 6px;
+    max-height: none;
+    min-height: 0;
   }
 
+  .sidebar > .panel,
+  .sidebar > .detail-card {
+    flex: 0 0 min(260px, calc(85vw - 20px));
+    scroll-snap-align: start;
+    min-width: 0;
+    padding: 14px;
+  }
+
+  .left-panel::before,
+  .right-panel::before {
+    display: none;
+  }
+
+  .panel {
+    min-width: 0;
+    padding: 14px;
+  }
+
+  .panel h3 {
+    font-size: 15px;
+    margin-bottom: 10px;
+  }
+
+  /* Map Stage */
+  .map-stage {
+    min-height: 0;
+    height: 100%;
+    grid-column: 1;
+  }
+
+  .map-header {
+    top: 10px;
+    left: 10px;
+    right: 10px;
+    gap: 8px;
+  }
+
+  .map-header-summary {
+    gap: 8px;
+  }
+
+  .map-header-total {
+    padding: 6px 10px;
+    font-size: 12px;
+    gap: 6px;
+  }
+
+  .map-header-value { font-size: 18px; }
+  .map-header-unit { font-size: 11px; }
+
+  .map-header-provinces {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 4px;
+    gap: 6px;
+  }
+
+  .map-header-provinces::-webkit-scrollbar { display: none; }
+
+  .map-province-chip {
+    flex-shrink: 0;
+    font-size: 11px;
+    padding: 5px 10px;
+  }
+
+  .map-chip {
+    font-size: 11px;
+    padding: 6px 10px;
+  }
+
+  .map-overlay { inset: 10px; }
+
+  /* Detail Card */
+  .detail-card {
+    position: static;
+    width: 100%;
+    max-height: 55vh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Forms */
+  .field input,
+  .field select,
+  .field textarea {
+    font-size: 14px;
+    padding: 8px 10px;
+  }
+
+  .field {
+    margin-bottom: 10px;
+  }
+
+  .result-list {
+    max-height: 38vh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .result-item {
+    padding: 10px 12px;
+  }
+
+  .result-title { font-size: 13px; }
+  .result-meta { font-size: 11px; }
+
+  /* Stats */
+  .stats-total { font-size: 13px; }
+  .stats-value { font-size: 20px; }
+  .stats-row { padding: 7px 10px; }
+  .stats-name { font-size: 12px; }
+  .stats-count { font-size: 12px; }
+
+  /* Buttons */
+  .primary-button {
+    padding: 10px 16px;
+    font-size: 13px;
+    border-radius: 12px;
+  }
+
+  .ghost-button {
+    padding: 8px 14px;
+    font-size: 12px;
+    border-radius: 12px;
+  }
+
+  /* Footer */
   .site-footer {
-    padding: 22px;
+    padding: 16px;
+    gap: 16px;
+    grid-template-columns: 1fr;
   }
 
+  .footer-brand {
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .footer-logo { width: 60px; height: 60px; }
+  .footer-title { font-size: 16px; }
+  .footer-sub { font-size: 11px; }
+  .footer-desc { font-size: 12px; }
+
+  .footer-right {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+  }
+
+  .footer-label { font-size: 12px; }
+  .footer-item { font-size: 12px; }
+  .footer-qr-image { width: 100px; height: 100px; }
+
+  /* Topic & Featured */
   .topic-grid {
     grid-template-columns: 1fr;
+    gap: 12px;
   }
 
   .topic-result-head {
@@ -1942,19 +2235,144 @@ html {
     gap: 6px;
   }
 
-  .footer-brand {
-    flex-direction: column;
-    align-items: flex-start;
+  .featured-card {
+    grid-template-columns: 1fr;
   }
 
-  .footer-right {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 18px;
+  .featured-card-image { height: 160px; }
+  .featured-card-name { font-size: 18px; }
+  .featured-card-meta { font-size: 12px; }
+  .featured-strip { padding: 14px; }
+  .featured-strip-title { font-size: 18px; }
+
+  /* Official Links */
+  .official-links-columns { grid-template-columns: 1fr; }
+  .official-links-list { font-size: 12px; }
+
+  /* Carousel */
+  .carousel-track { gap: 10px; }
+  .carousel-card { min-width: 200px; }
+}
+
+/* ─── Small mobile (≤480px) ─── */
+@media (max-width: 480px) {
+  .map-shell {
+    height: calc(100dvh - 20px);
+    height: calc(100svh - 20px);
   }
 
-  .detail-card {
-    position: static;
+  .topbar { padding: 10px 12px; }
+
+  .brand-logo { width: 48px; height: 48px; border-radius: 12px; }
+  .brand-title { font-size: 18px; }
+  .brand-sub { display: none; }
+
+  .sidebar > .panel,
+  .sidebar > .detail-card {
+    flex: 0 0 min(240px, calc(88vw - 16px));
+  }
+
+  .panel { padding: 12px; }
+  .panel h3 { font-size: 14px; }
+
+  .detail-card { max-height: 60vh; }
+
+  .map-header { top: 8px; left: 8px; right: 8px; }
+  .map-header-total { padding: 5px 8px; font-size: 11px; }
+  .map-header-value { font-size: 16px; }
+
+  .site-footer { padding: 14px; }
+  .footer-logo { width: 48px; height: 48px; }
+  .footer-title { font-size: 14px; }
+  .footer-qr { display: none; }
+
+  .featured-strip { padding: 12px; }
+  .featured-strip-title { font-size: 16px; }
+  .featured-card-name { font-size: 16px; }
+}
+
+/* ─── Extra small (≤375px) ─── */
+@media (max-width: 375px) {
+  .map-page { padding: 8px; gap: 8px; }
+
+  .map-shell {
+    height: calc(100dvh - 16px);
+    height: calc(100svh - 16px);
+    gap: 8px;
+  }
+
+  .topbar { padding: 8px 10px; }
+
+  .brand-nav { gap: 4px; }
+  .category-chip { padding: 5px 10px; font-size: 10px; }
+
+  .sidebar > .panel,
+  .sidebar > .detail-card {
+    flex: 0 0 min(220px, calc(90vw - 12px));
+    padding: 10px;
+  }
+
+  .panel h3 { font-size: 13px; margin-bottom: 8px; }
+
+  .map-province-chip { font-size: 10px; padding: 4px 8px; }
+
+  .site-footer { padding: 12px; gap: 12px; }
+  .footer-brand-text .footer-title { font-size: 14px; }
+  .footer-desc { display: none; }
+  .footer-right { gap: 10px; }
+}
+
+/* ─── Detail page mobile ─── */
+@media (max-width: 720px) {
+  .detail-page {
+    padding: 16px;
+  }
+
+  .detail-page-card {
     width: 100%;
+    padding: 16px;
+    gap: 14px;
+  }
+
+  .detail-page-header {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .detail-page-section p,
+  .detail-page-section li {
+    font-size: 13px;
+  }
+
+  .detail-page-section h3 {
+    font-size: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .detail-page {
+    padding: 12px;
+  }
+
+  .detail-page-card {
+    padding: 12px;
+    gap: 12px;
+  }
+
+  .detail-page-section p,
+  .detail-page-section li {
+    font-size: 13px;
+  }
+
+  .province-list {
+    max-height: 50vh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .topic-result-list {
+    max-height: 50vh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
   }
 }
