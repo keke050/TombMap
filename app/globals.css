@@ -73,7 +73,7 @@ body {
   position: relative;
   display: grid;
   grid-template-columns: 320px minmax(0, 1fr) 320px;
-  grid-template-rows: auto minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1.5fr);
   height: calc(100vh - 48px);
   height: calc(100svh - 48px);
   height: calc(100dvh - 48px);
@@ -273,7 +273,7 @@ body {
   position: relative;
   z-index: 1;
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 14px;
 }
 
@@ -920,9 +920,12 @@ body {
   flex-wrap: wrap;
 }
 
-/* 桌面端：stats-results 不存在感，对子 panel 布局无影响 */
+/* 桌面端：统计、检索结果左右两栏等高并列 */
 .stats-results {
-  display: contents;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  align-items: start;
 }
 
 /* 检索区分行：桌面端无包裹感，子项仍按纵向排列 */
@@ -1113,12 +1116,16 @@ body {
   gap: 10px;
   max-height: 320px;
   overflow: auto;
+  padding-right: 4px;
+  flex: 1;
 }
 
 .stats-panel {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  max-height: 100%;
+  overflow: hidden;
 }
 
 .stats-total {
@@ -1151,9 +1158,10 @@ body {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  max-height: 200px;
+  max-height: 320px;
   overflow: auto;
   padding-right: 4px;
+  flex: 1;
 }
 
 .stats-row {
@@ -1616,16 +1624,42 @@ body {
   padding: 7px 10px;
 }
 
-.right-panel > .empty-detail,
-.right-panel > .rank-panel {
+/* 桌面端：热门搜索 + 搜索排行左右并列，搜索排行高度固定可滚动 */
+.right-panel > .empty-detail {
   flex: 0 0 auto;
   min-height: 0;
+  width: 100%;
+}
+
+.empty-detail {
+  display: flex;
+  flex-direction: row;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.empty-detail > .hot-panel {
+  flex: 0 0 calc(50% - 6px);
+  min-width: 0;
 }
 
 .rank-panel {
+  flex: 0 0 calc(50% - 6px);
+  min-width: 0;
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  max-height: none;
+}
+
+.rank-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  overflow-y: auto;
+  padding-right: 2px;
+  max-height: 400px;
+  flex: 1;
 }
 
 .rank-panel-header {
@@ -1634,14 +1668,7 @@ body {
   justify-content: space-between;
   gap: 12px;
   margin-bottom: 10px;
-}
-
-.rank-list {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  overflow: auto;
-  padding-right: 2px;
+  flex-shrink: 0;
 }
 
 .rank-item {
@@ -2150,14 +2177,46 @@ body {
     max-width: 100%;
   }
 
-  .left-panel::before,
-  .right-panel::before {
-    display: none;
+  /* 移动端：热门搜索 + 搜索排行恢复上下排列 */
+  .empty-detail {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .empty-detail > .hot-panel {
+    flex: 0 0 auto;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .rank-panel {
+    flex: 0 0 auto;
+    width: 100%;
+    min-width: 0;
+    overflow: visible;
+  }
+
+  .rank-list {
+    max-height: none;
+    overflow: visible;
+  }
+
+  /* 移动端：统计 + 检索结果上下排列 */
+  .stats-results {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: stretch;
   }
 
   .panel {
     min-width: 0;
     padding: 12px;
+  }
+
+  .left-panel::before,
+  .right-panel::before {
+    display: none;
   }
 
   .panel h3 {
@@ -2178,14 +2237,7 @@ body {
     grid-template-columns: minmax(0, 1fr);
   }
 
-  /* 统计 + 检索结果：左右并排两列 */
-  .stats-results {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-    align-items: start;
-  }
-
+  /* 移动端：统计 + 检索结果内部样式 */
   .stats-results > .panel {
     padding: 12px;
   }
