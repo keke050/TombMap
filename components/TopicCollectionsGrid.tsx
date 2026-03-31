@@ -8,7 +8,7 @@ export default function TopicCollectionsGrid() {
       <div className="topic-strip-header">
         <div>
           <div className="topic-strip-title">人物专题 · 名家合集</div>
-          <div className="topic-strip-sub">3 × 2 精选专题，按人物群像浏览相关古墓</div>
+          <div className="topic-strip-sub">2 × 3 精选专题，按人物群像浏览相关古墓</div>
         </div>
       </div>
 

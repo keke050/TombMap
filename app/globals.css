@@ -73,7 +73,7 @@ body {
   position: relative;
   display: grid;
   grid-template-columns: 320px minmax(0, 1fr) 320px;
-  grid-template-rows: auto minmax(0, 1.5fr);
+  grid-template-rows: auto minmax(0, 1fr);
   height: calc(100vh - 48px);
   height: calc(100svh - 48px);
   height: calc(100dvh - 48px);
@@ -273,7 +273,7 @@ body {
   position: relative;
   z-index: 1;
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 14px;
 }
 
@@ -920,12 +920,9 @@ body {
   flex-wrap: wrap;
 }
 
-/* 桌面端：统计、检索结果左右两栏等高并列 */
+/* 桌面端：统计与检索结果纵向排列（子 panel 直接参与左侧栏 flex） */
 .stats-results {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  align-items: start;
+  display: contents;
 }
 
 /* 检索区分行：桌面端无包裹感，子项仍按纵向排列 */
@@ -1116,16 +1113,12 @@ body {
   gap: 10px;
   max-height: 320px;
   overflow: auto;
-  padding-right: 4px;
-  flex: 1;
 }
 
 .stats-panel {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  max-height: 100%;
-  overflow: hidden;
 }
 
 .stats-total {
@@ -1158,10 +1151,9 @@ body {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  max-height: 320px;
+  max-height: 200px;
   overflow: auto;
   padding-right: 4px;
-  flex: 1;
 }
 
 .stats-row {
@@ -1624,42 +1616,16 @@ body {
   padding: 7px 10px;
 }
 
-/* 桌面端：热门搜索 + 搜索排行左右并列，搜索排行高度固定可滚动 */
-.right-panel > .empty-detail {
+.right-panel > .empty-detail,
+.right-panel > .rank-panel {
   flex: 0 0 auto;
   min-height: 0;
-  width: 100%;
-}
-
-.empty-detail {
-  display: flex;
-  flex-direction: row;
-  gap: 12px;
-  align-items: flex-start;
-}
-
-.empty-detail > .hot-panel {
-  flex: 0 0 calc(50% - 6px);
-  min-width: 0;
 }
 
 .rank-panel {
-  flex: 0 0 calc(50% - 6px);
-  min-width: 0;
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  max-height: none;
-}
-
-.rank-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  overflow-y: auto;
-  padding-right: 2px;
-  max-height: 400px;
-  flex: 1;
 }
 
 .rank-panel-header {
@@ -1668,7 +1634,14 @@ body {
   justify-content: space-between;
   gap: 12px;
   margin-bottom: 10px;
-  flex-shrink: 0;
+}
+
+.rank-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow: auto;
+  padding-right: 2px;
 }
 
 .rank-item {
@@ -1992,7 +1965,7 @@ body {
   }
 
   .topic-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
   .official-links-columns {
@@ -2177,36 +2150,40 @@ body {
     max-width: 100%;
   }
 
-  /* 移动端：热门搜索 + 搜索排行恢复上下排列 */
-  .empty-detail {
-    flex-direction: column;
-    gap: 10px;
-  }
-
-  .empty-detail > .hot-panel {
-    flex: 0 0 auto;
-    width: 100%;
-    min-width: 0;
-  }
-
-  .rank-panel {
-    flex: 0 0 auto;
-    width: 100%;
-    min-width: 0;
-    overflow: visible;
-  }
-
-  .rank-list {
-    max-height: none;
-    overflow: visible;
-  }
-
-  /* 移动端：统计 + 检索结果上下排列 */
+  /* 移动端：统计 + 检索结果左右并列，两栏等高、列表各自滚动 */
   .stats-results {
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
     gap: 10px;
     align-items: stretch;
+  }
+
+  /* 移动端：热门搜索与搜索排行左右并列（避免 width:100% 把两栏挤成上下） */
+  .right-panel:has(> .empty-detail) {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    align-items: stretch;
+  }
+
+  .right-panel:has(> .empty-detail) > .empty-detail,
+  .right-panel:has(> .empty-detail) > .rank-panel {
+    width: auto;
+    min-width: 0;
+    max-width: none;
+  }
+
+  .right-panel:has(> .empty-detail) > .rank-panel {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .right-panel:has(> .empty-detail) .rank-list {
+    max-height: min(48vh, 420px);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-right: 4px;
   }
 
   .panel {
@@ -2252,7 +2229,7 @@ body {
   }
 
   .stats-results .stats-list {
-    max-height: 28vh;
+    max-height: min(32vh, 280px);
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
   }
@@ -2267,7 +2244,7 @@ body {
   }
 
   .stats-results .result-list {
-    max-height: 28vh;
+    max-height: min(32vh, 280px);
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
   }
@@ -2319,13 +2296,13 @@ body {
     width: 100%;
   }
 
-  /* 地图固定高度，落在文档流中 */
+  /* 地图固定高度，落在文档流中（略增高以扩大可视范围） */
   .map-stage {
     grid-column: auto;
     flex: 0 0 auto;
     width: 100%;
-    height: clamp(260px, 44vh, 420px);
-    min-height: 260px;
+    height: clamp(300px, 52vh, 500px);
+    min-height: 280px;
     position: relative;
     z-index: 1;
     isolation: isolate;
@@ -2398,16 +2375,6 @@ body {
 
   .right-panel .hot-panel--compact .hot-chip[disabled] {
     opacity: 0.45;
-  }
-
-  .right-panel .rank-panel {
-    overflow: visible;
-  }
-
-  .right-panel .rank-list {
-    max-height: none;
-    overflow: visible;
-    padding-right: 0;
   }
 
   /* Detail Card */
@@ -2562,8 +2529,8 @@ body {
   }
 
   .map-stage {
-    height: clamp(240px, 40vh, 380px);
-    min-height: 240px;
+    height: clamp(280px, 48vh, 460px);
+    min-height: 260px;
   }
 
   .panel { padding: 12px; }
