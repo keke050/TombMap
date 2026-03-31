@@ -920,6 +920,29 @@ body {
   flex-wrap: wrap;
 }
 
+/* 检索区分行：桌面端无包裹感，子项仍按纵向排列 */
+.search-row {
+  display: contents;
+}
+
+.search-toolbar {
+  margin-bottom: 12px;
+}
+
+.search-toolbar--secondary {
+  margin-bottom: 0;
+  margin-top: 4px;
+}
+
+.search-toolbar .inline-actions {
+  margin-bottom: 0;
+}
+
+.search-status {
+  margin-top: 8px;
+  margin-bottom: 0;
+}
+
 .map-stage {
   grid-column: 2;
   position: relative;
@@ -2010,85 +2033,108 @@ body {
 
 /* ─── Mobile (≤720px) ─── */
 @media (max-width: 720px) {
-  /* Page & Shell */
   .map-page {
     padding: 12px;
     gap: 10px;
   }
 
+  /* 整页纵向滚动：不再用固定视口高度 + 内部滚轮 */
   .map-shell {
-    height: calc(100dvh - 24px);
-    height: calc(100svh - 24px);
-    min-height: 0;
-    overflow: hidden;
-    grid-template-rows: auto auto 1fr auto;
-    gap: 10px;
-  }
-
-  /* Topbar */
-  .topbar {
+    display: flex;
     flex-direction: column;
-    align-items: flex-start;
+    align-items: stretch;
+    height: auto;
+    min-height: 0;
+    max-height: none;
+    overflow: visible;
     gap: 10px;
-    padding: 14px 16px;
   }
 
-  .topbar-actions {
-    width: 100%;
-    justify-content: flex-end;
+  /* 顶栏：首行 Logo+副标题 | 头像；次行分类 2×3（display:contents 把 brand 子节点抬到 grid） */
+  .topbar {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-rows: auto auto;
+    align-items: start;
+    gap: 10px 12px;
+    padding: 12px 14px;
+    flex-direction: unset;
   }
 
   .brand {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
-    width: 100%;
+    display: contents;
   }
 
   .brand-identity {
-    width: 100%;
+    grid-column: 1;
+    grid-row: 1;
+    min-width: 0;
+    width: auto;
+  }
+
+  .topbar-actions {
+    grid-column: 2;
+    grid-row: 1;
+    width: auto;
+    justify-self: end;
+    align-self: start;
+    flex-shrink: 0;
   }
 
   .brand-nav {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
     width: 100%;
     transform: none;
-    padding-left: 0;
-    gap: 6px;
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-    -webkit-overflow-scrolling: touch;
-    padding-bottom: 2px;
+    padding: 0;
+    overflow: visible;
+    flex-wrap: unset;
+    justify-content: stretch;
   }
-
-  .brand-nav::-webkit-scrollbar { display: none; }
-
-  .brand-logo { width: 56px; height: 56px; }
-  .brand-title { font-size: 20px; }
-  .brand-sub { font-size: 11px; }
 
   .category-chip {
-    flex-shrink: 0;
-    padding: 6px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 8px 10px;
     font-size: 11px;
-    white-space: nowrap;
+    line-height: 1.25;
+    white-space: normal;
+    word-break: keep-all;
+    min-height: 40px;
   }
 
-  /* 左栏保持与桌面相同的纵向顺序；由 1024 规则负责纵向滚动，此处收紧高度让地图更高 */
+  .brand-logo { width: 48px; height: 48px; }
+  .brand-title { font-size: 18px; }
+  .brand-sub { font-size: 10px; line-height: 1.35; }
+
+  /* 检索区在地图之上，随页面滚动；抬高层级避免被地图盖住 */
   .left-panel {
-    max-height: min(44vh, 440px);
+    display: flex;
+    flex-direction: column;
+    max-height: none !important;
+    overflow: visible !important;
+    overflow-x: hidden;
     gap: 10px;
-    padding-right: 4px;
+    padding-right: 0;
+    position: relative;
+    z-index: 4;
+    flex-shrink: 0;
   }
 
   .right-panel {
     flex-direction: column;
-    overflow-x: hidden;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
+    overflow: visible !important;
+    max-height: none !important;
     scroll-snap-type: none;
-    max-height: min(36vh, 380px);
+    gap: 10px;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 2;
   }
 
   .right-panel > .panel,
@@ -2106,7 +2152,7 @@ body {
 
   .panel {
     min-width: 0;
-    padding: 14px;
+    padding: 12px;
   }
 
   .panel h3 {
@@ -2114,17 +2160,71 @@ body {
     margin-bottom: 10px;
   }
 
-  /* Map Stage：保证可见高度（避免 1fr 被左栏撑没） */
+  /* 检索表单：多行横向栅格（手机） */
+  .panel--search .search-row {
+    display: grid;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+
+  .panel--search .search-row--3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .panel--search .search-row--2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .panel--search .search-row--1 {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .panel--search .search-row--checks .field--checkbox-tight label {
+    display: flex;
+    align-items: flex-start;
+    gap: 0;
+    font-size: 11px;
+    line-height: 1.35;
+  }
+
+  .panel--search .field {
+    margin-bottom: 0;
+  }
+
+  .panel--search .field label {
+    font-size: 10px;
+  }
+
+  .panel--search .field input,
+  .panel--search .field select {
+    padding: 7px 8px;
+    font-size: 13px;
+  }
+
+  .panel--search .search-toolbar {
+    margin-bottom: 8px;
+  }
+
+  .panel--search .search-toolbar .primary-button {
+    width: 100%;
+  }
+
+  /* 地图固定高度，落在文档流中 */
   .map-stage {
-    grid-column: 1;
-    height: 100%;
-    min-height: min(46vh, 340px);
+    grid-column: auto;
+    flex: 0 0 auto;
+    width: 100%;
+    height: clamp(260px, 44vh, 420px);
+    min-height: 260px;
+    position: relative;
+    z-index: 1;
+    isolation: isolate;
   }
 
   .map-header {
-    top: 10px;
-    left: 10px;
-    right: 10px;
+    top: 8px;
+    left: 8px;
+    right: 8px;
     gap: 8px;
   }
 
@@ -2134,11 +2234,11 @@ body {
 
   .map-header-total {
     padding: 6px 10px;
-    font-size: 12px;
+    font-size: 11px;
     gap: 6px;
   }
 
-  .map-header-value { font-size: 18px; }
+  .map-header-value { font-size: 17px; }
   .map-header-unit { font-size: 11px; }
 
   .map-header-provinces {
@@ -2164,7 +2264,41 @@ body {
     padding: 6px 10px;
   }
 
-  .map-overlay { inset: 10px; }
+  .map-overlay { inset: 8px; }
+
+  /* 热门搜索：两列换行铺满，取消紧凑模式的错位 span */
+  .right-panel .hot-panel--compact .hot-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding-bottom: 6px;
+    grid-template-columns: unset;
+    grid-auto-flow: unset;
+  }
+
+  .right-panel .hot-panel--compact .hot-chip {
+    flex: 1 1 calc(50% - 4px);
+    min-width: min(100%, 140px);
+    margin-top: 0 !important;
+    transform: none !important;
+    grid-column: unset !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+  }
+
+  .right-panel .hot-panel--compact .hot-chip[disabled] {
+    opacity: 0.45;
+  }
+
+  .right-panel .rank-panel {
+    overflow: visible;
+  }
+
+  .right-panel .rank-list {
+    max-height: none;
+    overflow: visible;
+    padding-right: 0;
+  }
 
   /* Detail Card */
   .detail-card {
@@ -2279,23 +2413,15 @@ body {
 
 /* ─── Small mobile (≤480px) ─── */
 @media (max-width: 480px) {
-  .map-shell {
-    height: calc(100dvh - 20px);
-    height: calc(100svh - 20px);
-  }
-
   .topbar { padding: 10px 12px; }
 
-  .brand-logo { width: 48px; height: 48px; border-radius: 12px; }
-  .brand-title { font-size: 18px; }
+  .brand-logo { width: 44px; height: 44px; border-radius: 12px; }
+  .brand-title { font-size: 17px; }
   .brand-sub { display: none; }
 
-  .left-panel {
-    max-height: min(42vh, 400px);
-  }
-
   .map-stage {
-    min-height: min(44vh, 300px);
+    height: clamp(240px, 40vh, 380px);
+    min-height: 240px;
   }
 
   .panel { padding: 12px; }
@@ -2322,18 +2448,16 @@ body {
   .map-page { padding: 8px; gap: 8px; }
 
   .map-shell {
-    height: calc(100dvh - 16px);
-    height: calc(100svh - 16px);
     gap: 8px;
   }
 
   .topbar { padding: 8px 10px; }
 
-  .brand-nav { gap: 4px; }
-  .category-chip { padding: 5px 10px; font-size: 10px; }
+  .brand-nav { gap: 6px; }
+  .category-chip { padding: 6px 8px; font-size: 10px; min-height: 36px; }
 
-  .left-panel {
-    max-height: min(40vh, 380px);
+  .panel--search .search-row--3 {
+    grid-template-columns: 1fr;
   }
 
   .panel h3 { font-size: 13px; margin-bottom: 8px; }

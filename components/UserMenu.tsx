@@ -10,14 +10,19 @@ export default function UserMenu({ user, onLogout }: { user: UserProfile | null;
 
   useEffect(() => {
     if (!open) return;
-    const handle = (event: MouseEvent) => {
+    const handle = (event: MouseEvent | TouchEvent) => {
       const el = containerRef.current;
       if (!el) return;
-      if (event.target instanceof Node && el.contains(event.target)) return;
+      const target = event.target;
+      if (target instanceof Node && el.contains(target)) return;
       setOpen(false);
     };
     window.addEventListener('mousedown', handle);
-    return () => window.removeEventListener('mousedown', handle);
+    window.addEventListener('touchstart', handle, { passive: true });
+    return () => {
+      window.removeEventListener('mousedown', handle);
+      window.removeEventListener('touchstart', handle);
+    };
   }, [open]);
 
   const avatar = useMemo(() => {

@@ -560,7 +560,7 @@ export default function MapShell() {
               <div className="brand-sub">寻找中华大地的古墓与文保遗迹</div>
             </div>
           </div>
-          <nav className="brand-nav">
+          <nav className="brand-nav" aria-label="内容分类">
             {CATEGORY_LINKS.map((item) => (
               <Link key={item.slug} className="category-chip" href={`/categories/${item.slug}`}>
                 {item.label}
@@ -574,104 +574,116 @@ export default function MapShell() {
       </header>
 
       <aside className="sidebar left-panel">
-        <section className="panel">
-          <div className="inline-actions" style={{ marginBottom: 12 }}>
+        <section className="panel panel--search">
+          <div className="search-toolbar">
             <button className="primary-button primary-button--jade" onClick={() => fetchTombs()}>
               {isSearching ? '检索中…' : '开始检索'}
             </button>
           </div>
-          <div className="field">
-            <label>人物 / 称谓</label>
-            <input value={person} onChange={(e) => setPerson(e.target.value)} placeholder="如：曹操、李白" />
-          </div>
-          <div className="field">
-            <label>古墓关键词</label>
-            <input value={keyword} onChange={(e) => setKeyword(e.target.value)} placeholder="如：陵、墓、冢" />
-          </div>
-          <div className="field">
-            <label>朝代</label>
-            <input
-              list="dynasty-options"
-              value={era}
-              onChange={(e) => setEra(e.target.value)}
-              placeholder="如：唐、东汉、明"
-            />
-            <datalist id="dynasty-options">
-              {dynastyOptions.map((item) => (
-                <option key={item} value={item} />
-              ))}
-            </datalist>
-          </div>
-          <div className="field">
-            <label>省份</label>
-            <input list="province-options" value={province} onChange={(e) => setProvince(e.target.value)} />
-            <datalist id="province-options">
-              {provinces.map((item) => (
-                <option key={item} value={item} />
-              ))}
-            </datalist>
-          </div>
-          <div className="field">
-            <label>城市（可选）</label>
-            <input value={city} onChange={(e) => setCity(e.target.value)} placeholder="如：西安市" />
-          </div>
-          <div className="field">
-            <label>区县（可选）</label>
-            <input value={county} onChange={(e) => setCounty(e.target.value)} placeholder="如：临潼区" />
-          </div>
-          <div className="field">
-            <label>文保级别</label>
-            <select value={level} onChange={(e) => setLevel(e.target.value)}>
-              {levelOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </div>
-        <div className="field">
-          <label>
-            <input
-              type="checkbox"
-              checked={onlyWithCoords}
-              onChange={(e) => setOnlyWithCoords(e.target.checked)}
-              style={{ marginRight: 8 }}
-            />
-            只显示有精确坐标的点位
-          </label>
-        </div>
-          <div className="field">
-            <label>
+          <div className="search-row search-row--3">
+            <div className="field">
+              <label>人物 / 称谓</label>
+              <input value={person} onChange={(e) => setPerson(e.target.value)} placeholder="如：曹操、李白" />
+            </div>
+            <div className="field">
+              <label>古墓关键词</label>
+              <input value={keyword} onChange={(e) => setKeyword(e.target.value)} placeholder="如：陵、墓、冢" />
+            </div>
+            <div className="field">
+              <label>朝代</label>
               <input
-                type="checkbox"
-                checked={includeExternal}
-                onChange={(e) => setIncludeExternal(e.target.checked)}
-                style={{ marginRight: 8 }}
+                list="dynasty-options"
+                value={era}
+                onChange={(e) => setEra(e.target.value)}
+                placeholder="如：唐、东汉、明"
               />
-              搜索时包含外部/百科结果
-            </label>
+              <datalist id="dynasty-options">
+                {dynastyOptions.map((item) => (
+                  <option key={item} value={item} />
+                ))}
+              </datalist>
+            </div>
           </div>
-          <div className="inline-actions">
-            <button className="ghost-button" onClick={handleLocate}>附近探索</button>
-            <button className="ghost-button" onClick={() => {
-              setNearby(null);
-              setStatus('已关闭定位');
-            }}>清除定位</button>
+          <div className="search-row search-row--3">
+            <div className="field">
+              <label>省份</label>
+              <input list="province-options" value={province} onChange={(e) => setProvince(e.target.value)} />
+              <datalist id="province-options">
+                {provinces.map((item) => (
+                  <option key={item} value={item} />
+                ))}
+              </datalist>
+            </div>
+            <div className="field">
+              <label>城市（可选）</label>
+              <input value={city} onChange={(e) => setCity(e.target.value)} placeholder="如：西安市" />
+            </div>
+            <div className="field">
+              <label>区县（可选）</label>
+              <input value={county} onChange={(e) => setCounty(e.target.value)} placeholder="如：临潼区" />
+            </div>
+          </div>
+          <div className="search-row search-row--1">
+            <div className="field">
+              <label>文保级别</label>
+              <select value={level} onChange={(e) => setLevel(e.target.value)}>
+                {levelOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+          <div className="search-row search-row--2 search-row--checks">
+            <div className="field field--checkbox-tight">
+              <label>
+                <input
+                  type="checkbox"
+                  checked={onlyWithCoords}
+                  onChange={(e) => setOnlyWithCoords(e.target.checked)}
+                  style={{ marginRight: 8 }}
+                />
+                只显示有精确坐标的点位
+              </label>
+            </div>
+            <div className="field field--checkbox-tight">
+              <label>
+                <input
+                  type="checkbox"
+                  checked={includeExternal}
+                  onChange={(e) => setIncludeExternal(e.target.checked)}
+                  style={{ marginRight: 8 }}
+                />
+                搜索时包含外部/百科结果
+              </label>
+            </div>
+          </div>
+          <div className="search-toolbar search-toolbar--secondary">
+            <div className="inline-actions">
+              <button className="ghost-button" onClick={handleLocate}>附近探索</button>
+              <button className="ghost-button" onClick={() => {
+                setNearby(null);
+                setStatus('已关闭定位');
+              }}>清除定位</button>
+            </div>
           </div>
           {nearby && (
-            <div className="field">
-              <label>附近半径（公里）：{Math.round(radius / 1000)}</label>
-              <input
-                type="range"
-                min={5000}
-                max={80000}
-                step={5000}
-                value={radius}
-                onChange={(e) => setRadius(Number(e.target.value))}
-              />
+            <div className="search-row search-row--1">
+              <div className="field">
+                <label>附近半径（公里）：{Math.round(radius / 1000)}</label>
+                <input
+                  type="range"
+                  min={5000}
+                  max={80000}
+                  step={5000}
+                  value={radius}
+                  onChange={(e) => setRadius(Number(e.target.value))}
+                />
+              </div>
             </div>
           )}
-          {status && <p className="footer-note">{status}</p>}
+          {status && <p className="footer-note search-status">{status}</p>}
         </section>
 
         <section className="panel stats-panel">
