@@ -1,0 +1,24 @@
+# Render Blueprint - 寻迹 (TombMap)
+# 部署步骤：Render Dashboard → New → Blueprint → 连接 GitHub 仓库
+
+services:
+  - type: web
+    name: tombmap
+    runtime: docker
+    region: singapore
+    plan: free
+
+    dockerfilePath: ./Dockerfile
+
+    # 构建时传入的 Build Arguments（通过 Render Environment Groups 设置）
+    buildArgs:
+      - fromGroup: NEXT_PUBLIC_AMAP_KEY
+        key: NEXT_PUBLIC_AMAP_KEY
+      - fromGroup: NEXT_PUBLIC_AMAP_SECURITY
+        key: NEXT_PUBLIC_AMAP_SECURITY
+
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3000

@@ -28,6 +28,12 @@ COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/public ./public
 
+# 运行时也需要这些公钥变量（standalone 模式不会自动带入）
+ARG NEXT_PUBLIC_AMAP_KEY
+ARG NEXT_PUBLIC_AMAP_SECURITY
+ENV NEXT_PUBLIC_AMAP_KEY=$NEXT_PUBLIC_AMAP_KEY
+ENV NEXT_PUBLIC_AMAP_SECURITY=$NEXT_PUBLIC_AMAP_SECURITY
+
 EXPOSE 3000
 
 CMD ["node", "server.js"]
