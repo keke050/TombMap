@@ -920,6 +920,11 @@ body {
   flex-wrap: wrap;
 }
 
+/* 桌面端：stats-results 不存在感，对子 panel 布局无影响 */
+.stats-results {
+  display: contents;
+}
+
 /* 检索区分行：桌面端无包裹感，子项仍按纵向排列 */
 .search-row {
   display: contents;
@@ -2160,23 +2165,76 @@ body {
     margin-bottom: 10px;
   }
 
-  /* 检索表单：多行横向栅格（手机） */
+  /* 检索表单：2 列网格（溢出自动换行） */
   .panel--search .search-row {
     display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 8px;
     margin-bottom: 8px;
   }
 
-  .panel--search .search-row--3 {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
-  .panel--search .search-row--2 {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .panel--search .search-row--1 {
+  /* 文保级别独占一行 */
+  .panel--search .search-row--full {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* 统计 + 检索结果：左右并排两列 */
+  .stats-results {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    align-items: start;
+  }
+
+  .stats-results > .panel {
+    padding: 12px;
+  }
+
+  .stats-results .stats-total {
+    font-size: 11px;
+    gap: 4px;
+  }
+
+  .stats-results .stats-value {
+    font-size: 16px;
+  }
+
+  .stats-results .stats-list {
+    max-height: 28vh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .stats-results .stats-row {
+    padding: 5px 8px;
+  }
+
+  .stats-results .stats-name,
+  .stats-results .stats-count {
+    font-size: 11px;
+  }
+
+  .stats-results .result-list {
+    max-height: 28vh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .stats-results .result-item {
+    padding: 8px 10px;
+  }
+
+  .stats-results .result-title {
+    font-size: 12px;
+  }
+
+  .stats-results .result-meta {
+    font-size: 10px;
+  }
+
+  .stats-results .panel h3 {
+    font-size: 13px;
+    margin-bottom: 8px;
   }
 
   .panel--search .search-row--checks .field--checkbox-tight label {
@@ -2383,9 +2441,20 @@ body {
 
   /* Topic & Featured */
   .topic-grid {
-    grid-template-columns: 1fr;
-    gap: 12px;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
   }
+
+  .topic-card {
+    min-height: 160px;
+    padding: 12px;
+    gap: 8px;
+  }
+
+  .topic-icon { width: 38px; height: 38px; }
+  .topic-icon svg { width: 22px; height: 22px; }
+  .topic-label { font-size: 14px; }
+  .topic-count { font-size: 11px; }
 
   .topic-result-head {
     flex-direction: column;
@@ -2418,6 +2487,27 @@ body {
   .brand-logo { width: 44px; height: 44px; border-radius: 12px; }
   .brand-title { font-size: 17px; }
   .brand-sub { display: none; }
+
+  .topic-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .topic-card {
+    min-height: 148px;
+    padding: 10px;
+  }
+
+  .topic-icon { width: 34px; height: 34px; }
+  .topic-icon svg { width: 20px; height: 20px; }
+  .topic-label { font-size: 13px; }
+  .topic-count { font-size: 10px; }
+
+  .panel--search .search-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+    margin-bottom: 6px;
+  }
 
   .map-stage {
     height: clamp(240px, 40vh, 380px);
@@ -2456,8 +2546,15 @@ body {
   .brand-nav { gap: 6px; }
   .category-chip { padding: 6px 8px; font-size: 10px; min-height: 36px; }
 
-  .panel--search .search-row--3 {
-    grid-template-columns: 1fr;
+  .topic-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .topic-card { min-height: 140px; padding: 10px; }
+
+  .panel--search .search-row--full {
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .panel h3 { font-size: 13px; margin-bottom: 8px; }

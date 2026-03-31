@@ -580,7 +580,7 @@ export default function MapShell() {
               {isSearching ? '检索中…' : '开始检索'}
             </button>
           </div>
-          <div className="search-row search-row--3">
+          <div className="search-row">
             <div className="field">
               <label>人物 / 称谓</label>
               <input value={person} onChange={(e) => setPerson(e.target.value)} placeholder="如：曹操、李白" />
@@ -589,6 +589,8 @@ export default function MapShell() {
               <label>古墓关键词</label>
               <input value={keyword} onChange={(e) => setKeyword(e.target.value)} placeholder="如：陵、墓、冢" />
             </div>
+          </div>
+          <div className="search-row">
             <div className="field">
               <label>朝代</label>
               <input
@@ -603,8 +605,6 @@ export default function MapShell() {
                 ))}
               </datalist>
             </div>
-          </div>
-          <div className="search-row search-row--3">
             <div className="field">
               <label>省份</label>
               <input list="province-options" value={province} onChange={(e) => setProvince(e.target.value)} />
@@ -614,6 +614,8 @@ export default function MapShell() {
                 ))}
               </datalist>
             </div>
+          </div>
+          <div className="search-row">
             <div className="field">
               <label>城市（可选）</label>
               <input value={city} onChange={(e) => setCity(e.target.value)} placeholder="如：西安市" />
@@ -623,7 +625,7 @@ export default function MapShell() {
               <input value={county} onChange={(e) => setCounty(e.target.value)} placeholder="如：临潼区" />
             </div>
           </div>
-          <div className="search-row search-row--1">
+          <div className="search-row search-row--full">
             <div className="field">
               <label>文保级别</label>
               <select value={level} onChange={(e) => setLevel(e.target.value)}>
@@ -635,7 +637,7 @@ export default function MapShell() {
               </select>
             </div>
           </div>
-          <div className="search-row search-row--2 search-row--checks">
+          <div className="search-row search-row--checks">
             <div className="field field--checkbox-tight">
               <label>
                 <input
@@ -669,7 +671,7 @@ export default function MapShell() {
             </div>
           </div>
           {nearby && (
-            <div className="search-row search-row--1">
+            <div className="search-row">
               <div className="field">
                 <label>附近半径（公里）：{Math.round(radius / 1000)}</label>
                 <input
@@ -686,7 +688,8 @@ export default function MapShell() {
           {status && <p className="footer-note search-status">{status}</p>}
         </section>
 
-        <section className="panel stats-panel">
+        <div className="stats-results">
+          <section className="panel stats-panel">
           <h3>统计</h3>
           <div className="stats-total">
             <span className="stats-label">当前结果</span>
@@ -755,6 +758,7 @@ export default function MapShell() {
             })}
           </div>
         </section>
+        </div>
       </aside>
 
       <section className="map-stage">
