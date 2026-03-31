@@ -2411,50 +2411,57 @@ body {
     margin-bottom: 8px;
   }
 
-  /* 复选框组靠左，附近探索/清除定位靠右 */
+  /* 第一行：两复选左右并排；第二行：附近探索 | 清除定位 左右并排 */
   .panel--search .search-options-bar {
     display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: 12px;
+    flex-direction: column;
+    gap: 8px;
     width: 100%;
     margin-bottom: 4px;
   }
 
   .panel--search .search-options-bar .search-row--checks {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 8px 10px;
     margin-bottom: 0;
-    flex: 1;
-    min-width: 0;
+    align-items: start;
   }
 
   .panel--search .search-options-bar .search-toolbar--secondary {
+    width: 100%;
     margin-top: 0;
     margin-bottom: 0;
-    flex-shrink: 0;
   }
 
   .panel--search .search-options-bar .inline-actions {
     display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 6px;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: stretch;
+    gap: 8px;
+    width: 100%;
+  }
+
+  .panel--search .search-options-bar .inline-actions .ghost-button {
+    flex: 1;
+    min-width: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
   }
 
   .panel--search .search-toolbar .primary-button {
     width: 100%;
   }
 
-  /* 地图固定高度，落在文档流中（略增高以扩大可视范围） */
+  /* 地图固定高度，落在文档流中（适当加高可视范围） */
   .map-stage {
     grid-column: auto;
     flex: 0 0 auto;
     width: 100%;
-    height: clamp(300px, 52vh, 500px);
-    min-height: 280px;
+    height: clamp(340px, 60vh, 580px);
+    min-height: 320px;
     position: relative;
     z-index: 1;
     isolation: isolate;
@@ -3070,8 +3077,8 @@ body {
   }
 
   .map-stage {
-    height: clamp(280px, 48vh, 460px);
-    min-height: 260px;
+    height: clamp(320px, 56vh, 540px);
+    min-height: 300px;
   }
 
   .panel { padding: 12px; }
