@@ -1861,30 +1861,50 @@ body {
 @media (max-width: 1024px) {
   .map-shell {
     grid-template-columns: 1fr;
-    grid-template-rows: auto auto 1fr auto auto;
+    /* 顶栏 | 左侧检索区 | 地图 | 右侧详情 — 四行，避免隐式列把地图挤没 */
+    grid-template-rows: auto auto minmax(240px, 1fr) auto;
     height: calc(100vh - 48px);
     height: calc(100svh - 48px);
     height: calc(100dvh - 48px);
   }
 
-  .sidebar {
-    flex-direction: row;
-    overflow-x: auto;
-    overflow-y: hidden;
-    -webkit-overflow-scrolling: touch;
-    scroll-snap-type: x mandatory;
-    gap: 12px;
-    padding-bottom: 4px;
+  .left-panel,
+  .map-stage,
+  .right-panel {
+    grid-column: 1;
   }
 
-  .sidebar > .panel,
-  .sidebar > .detail-card {
-    flex: 0 0 280px;
-    scroll-snap-align: start;
-    min-width: 260px;
+  /* 与桌面一致：统计、结果在表单下方纵向排列；整块区域可纵向滚动 */
+  .left-panel {
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-items: stretch;
+    gap: 12px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-gutter: stable;
+    max-height: min(48vh, 520px);
+    min-height: 0;
+  }
+
+  .left-panel > .panel,
+  .left-panel > .stats-panel,
+  .left-panel > .detail-card {
+    flex: 0 0 auto;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .left-panel .result-list {
+    max-height: none;
+    overflow-y: visible;
   }
 
   .right-panel {
+    display: flex;
     flex-direction: row;
     overflow-x: auto;
     overflow-y: hidden;
@@ -1892,22 +1912,23 @@ body {
     scroll-snap-type: x mandatory;
     gap: 12px;
     padding-bottom: 4px;
+    max-height: none;
   }
 
   .right-panel > .panel,
   .right-panel > .detail-card,
   .right-panel > section {
-    flex: 0 0 300px;
+    flex: 0 0 min(300px, 88vw);
     scroll-snap-align: start;
   }
 
   .map-stage {
-    min-height: 0;
     height: 100%;
+    min-height: min(40vh, 320px);
   }
 
   .panel {
-    min-width: 260px;
+    min-width: 0;
   }
 
   .site-footer {
@@ -2054,25 +2075,28 @@ body {
     white-space: nowrap;
   }
 
-  /* Sidebars → horizontal scroll strips */
-  .sidebar {
-    flex-direction: row;
-    overflow-x: auto;
-    overflow-y: hidden;
-    -webkit-overflow-scrolling: touch;
-    scroll-snap-type: x mandatory;
+  /* 左栏保持与桌面相同的纵向顺序；由 1024 规则负责纵向滚动，此处收紧高度让地图更高 */
+  .left-panel {
+    max-height: min(44vh, 440px);
     gap: 10px;
-    padding-bottom: 6px;
-    max-height: none;
-    min-height: 0;
+    padding-right: 4px;
   }
 
-  .sidebar > .panel,
-  .sidebar > .detail-card {
-    flex: 0 0 min(260px, calc(85vw - 20px));
-    scroll-snap-align: start;
-    min-width: 0;
-    padding: 14px;
+  .right-panel {
+    flex-direction: column;
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: none;
+    max-height: min(36vh, 380px);
+  }
+
+  .right-panel > .panel,
+  .right-panel > .detail-card,
+  .right-panel > section {
+    flex: 0 0 auto;
+    width: 100%;
+    max-width: 100%;
   }
 
   .left-panel::before,
@@ -2090,11 +2114,11 @@ body {
     margin-bottom: 10px;
   }
 
-  /* Map Stage */
+  /* Map Stage：保证可见高度（避免 1fr 被左栏撑没） */
   .map-stage {
-    min-height: 0;
-    height: 100%;
     grid-column: 1;
+    height: 100%;
+    min-height: min(46vh, 340px);
   }
 
   .map-header {
@@ -2163,10 +2187,9 @@ body {
     margin-bottom: 10px;
   }
 
-  .result-list {
-    max-height: 38vh;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
+  .left-panel .result-list {
+    max-height: none;
+    overflow-y: visible;
   }
 
   .result-item {
@@ -2267,9 +2290,12 @@ body {
   .brand-title { font-size: 18px; }
   .brand-sub { display: none; }
 
-  .sidebar > .panel,
-  .sidebar > .detail-card {
-    flex: 0 0 min(240px, calc(88vw - 16px));
+  .left-panel {
+    max-height: min(42vh, 400px);
+  }
+
+  .map-stage {
+    min-height: min(44vh, 300px);
   }
 
   .panel { padding: 12px; }
@@ -2306,10 +2332,8 @@ body {
   .brand-nav { gap: 4px; }
   .category-chip { padding: 5px 10px; font-size: 10px; }
 
-  .sidebar > .panel,
-  .sidebar > .detail-card {
-    flex: 0 0 min(220px, calc(90vw - 12px));
-    padding: 10px;
+  .left-panel {
+    max-height: min(40vh, 380px);
   }
 
   .panel h3 { font-size: 13px; margin-bottom: 8px; }
