@@ -2055,7 +2055,7 @@ body {
     gap: 10px;
   }
 
-  /* 顶栏：首行 Logo+副标题 | 头像；次行分类 2×3（display:contents 把 brand 子节点抬到 grid） */
+  /* 顶栏：首行 Logo+副标题 | 头像；次行分类 2 行×3 列（display:contents 把 brand 子节点抬到 grid） */
   .topbar {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
@@ -2090,8 +2090,8 @@ body {
     grid-column: 1 / -1;
     grid-row: 2;
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 8px;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
     width: 100%;
     transform: none;
     padding: 0;
@@ -2105,12 +2105,13 @@ body {
     align-items: center;
     justify-content: center;
     text-align: center;
-    padding: 8px 10px;
-    font-size: 11px;
-    line-height: 1.25;
+    padding: 5px 6px;
+    font-size: 10px;
+    line-height: 1.2;
     white-space: normal;
     word-break: keep-all;
-    min-height: 40px;
+    min-height: 34px;
+    border-radius: 10px;
   }
 
   .brand-logo { width: 48px; height: 48px; }
@@ -2150,40 +2151,12 @@ body {
     max-width: 100%;
   }
 
-  /* 移动端：统计 + 检索结果左右并列，两栏等高、列表各自滚动 */
+  /* 移动端：统计 + 检索结果左右并列，两栏严格等宽 */
   .stats-results {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 8px;
     align-items: stretch;
-  }
-
-  /* 移动端：热门搜索与搜索排行左右并列（避免 width:100% 把两栏挤成上下） */
-  .right-panel:has(> .empty-detail) {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-    align-items: stretch;
-  }
-
-  .right-panel:has(> .empty-detail) > .empty-detail,
-  .right-panel:has(> .empty-detail) > .rank-panel {
-    width: auto;
-    min-width: 0;
-    max-width: none;
-  }
-
-  .right-panel:has(> .empty-detail) > .rank-panel {
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-  }
-
-  .right-panel:has(> .empty-detail) .rank-list {
-    max-height: min(48vh, 420px);
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-    padding-right: 4px;
   }
 
   .panel {
@@ -2216,7 +2189,8 @@ body {
 
   /* 移动端：统计 + 检索结果内部样式 */
   .stats-results > .panel {
-    padding: 12px;
+    padding: 10px;
+    min-width: 0;
   }
 
   .stats-results .stats-total {
@@ -2353,28 +2327,104 @@ body {
 
   .map-overlay { inset: 8px; }
 
-  /* 热门搜索：两列换行铺满，取消紧凑模式的错位 span */
-  .right-panel .hot-panel--compact .hot-grid {
-    display: flex;
-    flex-wrap: wrap;
+  /* 热门搜索：三列网格压缩纵向高度，取消紧凑模式的错位 span */
+  .right-panel .hot-panel--compact {
+    gap: 6px;
+  }
+
+  .right-panel .hot-panel--compact .hot-panel-header {
     gap: 8px;
-    padding-bottom: 6px;
-    grid-template-columns: unset;
-    grid-auto-flow: unset;
+    margin-bottom: 0;
+  }
+
+  .right-panel .hot-panel--compact .hot-panel-titleText {
+    font-size: 15px;
+  }
+
+  .right-panel .hot-panel--compact .hot-panel-refresh {
+    padding: 5px 9px;
+    font-size: 11px;
+  }
+
+  .right-panel .hot-panel--compact .hot-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 5px;
+    padding-bottom: 2px;
+    grid-auto-flow: row;
   }
 
   .right-panel .hot-panel--compact .hot-chip {
-    flex: 1 1 calc(50% - 4px);
-    min-width: min(100%, 140px);
     margin-top: 0 !important;
     transform: none !important;
-    grid-column: unset !important;
+    grid-column: span 1 !important;
     visibility: visible !important;
     pointer-events: auto !important;
+    min-height: 32px;
+    padding: 4px 5px;
+    border-radius: 10px;
+  }
+
+  .right-panel .hot-panel--compact .hot-chip-kind {
+    font-size: 9px;
+    padding: 1px 5px;
+  }
+
+  .right-panel .hot-panel--compact .hot-chip-label {
+    margin-top: 3px;
+    font-size: 10px;
+    line-height: 1.2;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
   }
 
   .right-panel .hot-panel--compact .hot-chip[disabled] {
     opacity: 0.45;
+  }
+
+  /* 搜索排行：约可见 3 条，其余纵向滚动 */
+  .right-panel .rank-panel .rank-list {
+    max-height: 204px;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-right: 4px;
+    gap: 6px;
+  }
+
+  .right-panel .rank-panel .rank-item {
+    padding: 6px 8px;
+  }
+
+  .right-panel .rank-panel .rank-index {
+    width: 24px;
+    height: 24px;
+    font-size: 11px;
+    border-radius: 8px;
+  }
+
+  .right-panel .rank-panel .rank-row {
+    gap: 6px;
+    grid-template-columns: 24px 1fr;
+  }
+
+  .right-panel .rank-panel .result-title {
+    font-size: 12px;
+  }
+
+  .right-panel .rank-panel .result-meta {
+    font-size: 10px;
+    line-height: 1.35;
+  }
+
+  .right-panel .rank-panel h3 {
+    font-size: 14px;
+    margin-bottom: 6px;
+  }
+
+  .right-panel .rank-panel .rank-panel-header {
+    margin-bottom: 6px;
   }
 
   /* Detail Card */
@@ -2562,8 +2612,8 @@ body {
 
   .topbar { padding: 8px 10px; }
 
-  .brand-nav { gap: 6px; }
-  .category-chip { padding: 6px 8px; font-size: 10px; min-height: 36px; }
+  .brand-nav { gap: 5px; }
+  .category-chip { padding: 4px 5px; font-size: 9px; min-height: 30px; }
 
   .topic-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
