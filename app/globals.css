@@ -69,13 +69,34 @@ body {
   padding: 24px;
 }
 
-/* 手机端 Tab 栏和 Tab 内容在桌面端隐藏 */
-.mobile-bottom-tabs,
-.mobile-tab-content,
-.mobile-map-wrap,
-.discover-tab,
-.mobile-profile {
+/* 手机端底部 Tab 栏：仅桌面隐藏（勿隐藏 mobile-tab-content，否则地图区整块消失） */
+.mobile-bottom-tabs {
   display: none;
+}
+
+/*
+ * 桌面：外层包裹不参与布局，让 .map-shell 仍等同于直接放在 .map-page 下
+ * 手机：在 @media (max-width: 720px) 里改回 flex 布局
+ */
+.mobile-tab-content {
+  display: contents;
+}
+
+.mobile-map-wrap {
+  display: contents;
+}
+
+/* 桌面：发现/个人 Tab 内容不应出现（状态可能来自小屏切换后拉宽窗口） */
+@media (min-width: 721px) {
+  .discover-tab,
+  .mobile-profile {
+    display: none !important;
+  }
+
+  /* 与手机端一致：非「地图」Tab 时隐藏地图区（hidden-mobile 在 ≤720px 已定义，宽屏需单独写） */
+  .mobile-map-wrap.hidden-mobile {
+    display: none !important;
+  }
 }
 
 /* 桌面端专属内容在桌面显示，在手机隐藏 */
