@@ -988,6 +988,11 @@ body {
   margin-top: 4px;
 }
 
+/* 桌面：不参与盒模型，复选与定位按钮仍按纵向排在表单内 */
+.search-options-bar {
+  display: contents;
+}
+
 .search-toolbar .inline-actions {
   margin-bottom: 0;
 }
@@ -2211,6 +2216,16 @@ body {
     flex-shrink: 0;
   }
 
+  /* 底部已有「个人」Tab，地图顶栏不再显示头像菜单 */
+  .map-shell .topbar .topbar-actions {
+    display: none !important;
+  }
+
+  .map-shell .topbar .brand-identity {
+    grid-column: 1 / -1;
+    grid-row: 1;
+  }
+
   /* 六大分类已移至「发现」Tab 顶部，地图顶栏不再显示 */
   .brand-nav--map-only-desktop {
     display: none !important;
@@ -2394,6 +2409,39 @@ body {
 
   .panel--search .search-toolbar {
     margin-bottom: 8px;
+  }
+
+  /* 复选框组靠左，附近探索/清除定位靠右 */
+  .panel--search .search-options-bar {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    width: 100%;
+    margin-bottom: 4px;
+  }
+
+  .panel--search .search-options-bar .search-row--checks {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 0;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .panel--search .search-options-bar .search-toolbar--secondary {
+    margin-top: 0;
+    margin-bottom: 0;
+    flex-shrink: 0;
+  }
+
+  .panel--search .search-options-bar .inline-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 6px;
   }
 
   .panel--search .search-toolbar .primary-button {
@@ -2991,6 +3039,14 @@ body {
   .brand-logo { width: 44px; height: 44px; border-radius: 12px; }
   .brand-title { font-size: 17px; }
   .brand-sub { display: none; }
+
+  /* 地图首页顶栏保留副标题（其余页面仍可按需隐藏） */
+  .map-shell .topbar .brand-sub {
+    display: block;
+    font-size: 10px;
+    line-height: 1.35;
+    margin-top: 2px;
+  }
 
   .topic-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));

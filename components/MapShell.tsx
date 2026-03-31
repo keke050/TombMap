@@ -684,37 +684,39 @@ export default function MapShell() {
               </select>
             </div>
           </div>
-          <div className="search-row search-row--checks">
-            <div className="field field--checkbox-tight">
-              <label>
-                <input
-                  type="checkbox"
-                  checked={onlyWithCoords}
-                  onChange={(e) => setOnlyWithCoords(e.target.checked)}
-                  style={{ marginRight: 8 }}
-                />
-                只显示有精确坐标的点位
-              </label>
+          <div className="search-options-bar">
+            <div className="search-row search-row--checks">
+              <div className="field field--checkbox-tight">
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={onlyWithCoords}
+                    onChange={(e) => setOnlyWithCoords(e.target.checked)}
+                    style={{ marginRight: 8 }}
+                  />
+                  只显示有精确坐标的点位
+                </label>
+              </div>
+              <div className="field field--checkbox-tight">
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={includeExternal}
+                    onChange={(e) => setIncludeExternal(e.target.checked)}
+                    style={{ marginRight: 8 }}
+                  />
+                  搜索时包含外部/百科结果
+                </label>
+              </div>
             </div>
-            <div className="field field--checkbox-tight">
-              <label>
-                <input
-                  type="checkbox"
-                  checked={includeExternal}
-                  onChange={(e) => setIncludeExternal(e.target.checked)}
-                  style={{ marginRight: 8 }}
-                />
-                搜索时包含外部/百科结果
-              </label>
-            </div>
-          </div>
-          <div className="search-toolbar search-toolbar--secondary">
-            <div className="inline-actions">
-              <button className="ghost-button" onClick={handleLocate}>附近探索</button>
-              <button className="ghost-button" onClick={() => {
-                setNearby(null);
-                setStatus('已关闭定位');
-              }}>清除定位</button>
+            <div className="search-toolbar search-toolbar--secondary">
+              <div className="inline-actions">
+                <button className="ghost-button" onClick={handleLocate}>附近探索</button>
+                <button className="ghost-button" onClick={() => {
+                  setNearby(null);
+                  setStatus('已关闭定位');
+                }}>清除定位</button>
+              </div>
             </div>
           </div>
           {nearby && (
