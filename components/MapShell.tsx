@@ -907,6 +907,42 @@ export default function MapShell() {
         {activeMobileTab === 'profile' && (
           <MobileProfilePanel onUserChange={() => setUserRefreshKey((k) => k + 1)} />
         )}
+
+        <footer className="site-footer">
+          <div className="footer-left">
+            <div className="footer-brand">
+              <Image className="footer-logo" src="/brand-logo.png" alt="寻迹 Logo" width={96} height={96} />
+              <div className="footer-brand-text">
+                <div className="footer-title">寻迹</div>
+                <div className="footer-sub">探寻山河遗迹，守望千年记忆</div>
+              </div>
+            </div>
+            <p className="footer-desc">
+              以权威文保名录为基础，补全古墓坐标、人物与时代信息。
+              <br />
+              为考古爱好者与历史研究者提供可靠的寻访入口。
+            </p>
+          </div>
+          <div className="footer-right">
+            <div className="footer-sources">
+              <div className="footer-label">参考来源</div>
+              <div className="footer-item">全国重点文物保护单位名录</div>
+              <div className="footer-item">各省市自治区文物保护单位名录</div>
+              <div className="footer-item">维基百科&amp;百度百科</div>
+              <div className="footer-item footer-item-quoted">「华夏古迹图」平台</div>
+            </div>
+            <div className="footer-contact">
+              <div className="footer-label">联系方式</div>
+              <div className="footer-item">邮箱：2783729050@qq.com</div>
+              <div className="footer-item">微信：z2783729050</div>
+            </div>
+            <div className="footer-qr">
+              <div className="footer-label">微信二维码</div>
+              <Image className="footer-qr-image" src="/author-qr.jpg" alt="作者微信二维码" width={140} height={140} />
+              <div className="footer-note">扫码交流 · 资料共建</div>
+            </div>
+          </div>
+        </footer>
       </div>
 
       {/* 桌面端专属（手机通过 Tab 访问的内容在 mobile-tab-content 内部） */}
@@ -915,42 +951,6 @@ export default function MapShell() {
         <TopicCollectionsGrid />
         <OfficialHeritageLinks />
       </div>
-
-      <footer className="site-footer">
-        <div className="footer-left">
-          <div className="footer-brand">
-            <Image className="footer-logo" src="/brand-logo.png" alt="寻迹 Logo" width={96} height={96} />
-            <div className="footer-brand-text">
-              <div className="footer-title">寻迹</div>
-              <div className="footer-sub">探寻山河遗迹，守望千年记忆</div>
-            </div>
-          </div>
-          <p className="footer-desc">
-            以权威文保名录为基础，补全古墓坐标、人物与时代信息。
-            <br />
-            为考古爱好者与历史研究者提供可靠的寻访入口。
-          </p>
-        </div>
-        <div className="footer-right">
-          <div className="footer-sources">
-            <div className="footer-label">参考来源</div>
-            <div className="footer-item">全国重点文物保护单位名录</div>
-            <div className="footer-item">各省市自治区文物保护单位名录</div>
-            <div className="footer-item">维基百科&amp;百度百科</div>
-            <div className="footer-item footer-item-quoted">「华夏古迹图」平台</div>
-          </div>
-          <div className="footer-contact">
-            <div className="footer-label">联系方式</div>
-            <div className="footer-item">邮箱：2783729050@qq.com</div>
-            <div className="footer-item">微信：z2783729050</div>
-          </div>
-          <div className="footer-qr">
-            <div className="footer-label">微信二维码</div>
-            <Image className="footer-qr-image" src="/author-qr.jpg" alt="作者微信二维码" width={140} height={140} />
-            <div className="footer-note">扫码交流 · 资料共建</div>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }

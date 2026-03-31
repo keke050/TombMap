@@ -69,6 +69,17 @@ body {
   padding: 24px;
 }
 
+/* 页脚在 Tab 容器内；宽屏 display:contents 时与 desktop-extras 同为 map-page 的 flex 子项，用 order 保持先扩展区后页脚 */
+@media (min-width: 721px) {
+  .map-page .site-footer {
+    order: 2;
+  }
+
+  .map-page .desktop-extras {
+    order: 1;
+  }
+}
+
 /* 手机端底部 Tab 栏：仅桌面隐藏（勿隐藏 mobile-tab-content，否则地图区整块消失） */
 .mobile-bottom-tabs {
   display: none;
@@ -1996,11 +2007,6 @@ body {
     min-width: 0;
   }
 
-  /* Footer — 手机端底部 Tab 栏已替代其功能，故隐藏 */
-  .site-footer {
-    display: none;
-  }
-
   .topic-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
@@ -2145,7 +2151,7 @@ body {
     display: flex;
     flex-direction: column;
     overflow: visible;
-    gap: 0;
+    gap: 12px;
     padding: 10px 12px;
     padding-bottom: 70px; /* 留出 Tab 栏高度，避免内容被遮 */
   }
@@ -2842,8 +2848,14 @@ body {
     border-radius: 12px;
   }
 
-  /* Footer */
+  /* Footer：各 Tab 滚动到底可见；短页时贴底；父级 padding-bottom 避开固定 Tab */
+  .mobile-tab-content > .site-footer {
+    margin-top: auto;
+    flex-shrink: 0;
+  }
+
   .site-footer {
+    display: grid;
     padding: 16px;
     gap: 16px;
     grid-template-columns: 1fr;
