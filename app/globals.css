@@ -2460,8 +2460,8 @@ body {
     grid-column: auto;
     flex: 0 0 auto;
     width: 100%;
-    height: clamp(340px, 60vh, 580px);
-    min-height: 320px;
+    height: clamp(380px, 66vh, 640px);
+    min-height: 350px;
     position: relative;
     z-index: 1;
     isolation: isolate;
@@ -2475,7 +2475,19 @@ body {
   }
 
   .map-header-summary {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
     gap: 8px;
+  }
+
+  .map-header-summary .map-header-chip {
+    grid-column: 1 / -1;
+  }
+
+  .map-header-actions {
+    margin-left: 0;
+    justify-self: end;
   }
 
   .map-header-total {
@@ -3077,8 +3089,8 @@ body {
   }
 
   .map-stage {
-    height: clamp(320px, 56vh, 540px);
-    min-height: 300px;
+    height: clamp(360px, 62vh, 600px);
+    min-height: 330px;
   }
 
   .panel { padding: 12px; }
@@ -3087,6 +3099,15 @@ body {
   .detail-card { max-height: 60vh; }
 
   .map-header { top: 8px; left: 8px; right: 8px; }
+  .map-header-summary {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 6px;
+  }
+  .map-header-summary .map-header-chip { grid-column: 1 / -1; }
+  .map-header-actions { margin-left: 0; justify-self: end; }
+
   .map-header-total { padding: 5px 8px; font-size: 11px; }
   .map-header-value { font-size: 16px; }
 

@@ -694,7 +694,7 @@ export default function MapShell() {
                     onChange={(e) => setOnlyWithCoords(e.target.checked)}
                     style={{ marginRight: 8 }}
                   />
-                  只显示有精确坐标的点位
+                  只显示精确点位
                 </label>
               </div>
               <div className="field field--checkbox-tight">
@@ -705,7 +705,7 @@ export default function MapShell() {
                     onChange={(e) => setIncludeExternal(e.target.checked)}
                     style={{ marginRight: 8 }}
                   />
-                  搜索时包含外部/百科结果
+                  搜索含百科结果
                 </label>
               </div>
             </div>
@@ -774,7 +774,7 @@ export default function MapShell() {
             </div>
           )}
           {hasSearched && tombs.length === 0 && (
-            <div className="footer-note">暂无结果，尝试缩小范围，或取消“只显示有精确坐标的点位”。</div>
+            <div className="footer-note">暂无结果，尝试缩小范围，或取消“只显示精确点位”。</div>
           )}
           {hasSearched && tombs.length > 0 && filteredTombs.length === 0 && (
             <div className="footer-note">该省暂无结果，点击上方省份可取消筛选。</div>
