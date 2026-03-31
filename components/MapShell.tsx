@@ -609,7 +609,7 @@ export default function MapShell() {
               <div className="brand-sub">寻找中华大地的古墓与文保遗迹</div>
             </div>
           </div>
-          <nav className="brand-nav" aria-label="内容分类">
+          <nav className="brand-nav brand-nav--map-only-desktop" aria-label="内容分类">
             {CATEGORY_LINKS.map((item) => (
               <Link key={item.slug} className="category-chip" href={`/categories/${item.slug}`}>
                 {item.label}
@@ -735,7 +735,7 @@ export default function MapShell() {
           {status && <p className="footer-note search-status">{status}</p>}
         </section>
 
-        <div className="stats-results">
+        <div className={`stats-results${hasSearched ? ' stats-results--after-search' : ''}`}>
           <section className="panel stats-panel">
           <h3>统计</h3>
           <div className="stats-total">
@@ -895,6 +895,13 @@ export default function MapShell() {
         {/* ── Tab 2：发现 ── */}
         {activeMobileTab === 'discover' && (
           <div className="discover-tab">
+            <nav className="discover-category-nav" aria-label="内容分类">
+              {CATEGORY_LINKS.map((item) => (
+                <Link key={item.slug} className="category-chip" href={`/categories/${item.slug}`}>
+                  {item.label}
+                </Link>
+              ))}
+            </nav>
             <FamousTombCarousel />
             <TopicCollectionsGrid />
             <OfficialHeritageLinks />

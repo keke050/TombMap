@@ -2211,6 +2211,11 @@ body {
     flex-shrink: 0;
   }
 
+  /* 六大分类已移至「发现」Tab 顶部，地图顶栏不再显示 */
+  .brand-nav--map-only-desktop {
+    display: none !important;
+  }
+
   .brand-nav {
     grid-column: 1 / -1;
     grid-row: 2;
@@ -2560,6 +2565,35 @@ body {
     padding-bottom: 70px; /* 留出 Tab 栏高度 */
   }
 
+  /* 原地图顶栏六大分类，手机端移至发现 Tab 顶部 */
+  .discover-category-nav {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+    width: 100%;
+    margin: 0;
+    padding: 12px 14px;
+    border-radius: 16px;
+    background:
+      linear-gradient(135deg, rgba(255, 255, 255, 0.96), rgba(248, 241, 228, 0.9));
+    border: 1px solid rgba(27, 23, 18, 0.1);
+    box-shadow: var(--shadow-soft);
+  }
+
+  .discover-category-nav .category-chip {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 5px 6px;
+    font-size: 10px;
+    line-height: 1.2;
+    white-space: normal;
+    word-break: keep-all;
+    min-height: 34px;
+    border-radius: 10px;
+  }
+
   .discover-tab .featured-strip {
     padding: 14px;
     border-radius: 16px;
@@ -2589,7 +2623,7 @@ body {
   }
 
   .discover-tab .topic-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: minmax(0, 1fr);
     gap: 10px;
   }
 
@@ -2854,12 +2888,33 @@ body {
     margin-top: auto;
   }
 
+  /* 首行品牌介绍通栏；次行左侧参考来源+联系方式，右侧微信二维码 */
   .site-footer {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-rows: auto auto;
     align-items: start;
-    gap: 14px;
+    gap: 14px 16px;
     padding: 16px;
+  }
+
+  .site-footer .footer-left {
+    grid-column: 1 / -1;
+    grid-row: 1;
+  }
+
+  .site-footer .footer-right {
+    grid-column: 1;
+    grid-row: 2;
+    min-width: 0;
+    align-self: start;
+  }
+
+  .site-footer .footer-qr {
+    grid-column: 2;
+    grid-row: 2;
+    align-self: start;
+    justify-self: end;
   }
 
   .footer-brand {
@@ -2922,6 +2977,11 @@ body {
   /* Carousel */
   .carousel-track { gap: 10px; }
   .carousel-card { min-width: 200px; }
+
+  /* 未点击「开始检索」前不展示统计与检索结果（地图仍按视野加载点位） */
+  .stats-results:not(.stats-results--after-search) {
+    display: none !important;
+  }
 }
 
 /* ─── Small mobile (≤480px) ─── */
@@ -2968,7 +3028,6 @@ body {
   .map-header-value { font-size: 16px; }
 
   .site-footer {
-    grid-template-columns: 1fr;
     padding: 14px;
   }
   .footer-logo { width: 48px; height: 48px; }
@@ -3008,7 +3067,6 @@ body {
   .map-province-chip { font-size: 10px; padding: 4px 8px; }
 
   .site-footer {
-    grid-template-columns: 1fr;
     padding: 12px;
     gap: 12px;
   }
