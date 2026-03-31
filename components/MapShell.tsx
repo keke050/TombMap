@@ -11,6 +11,7 @@ import CommentsPanel from './CommentsPanel';
 import DetailCard from './DetailCard';
 import FamousTombCarousel from './FamousTombCarousel';
 import HotSearchPanel from './HotSearchPanel';
+import MobileProfilePanel from './MobileProfilePanel';
 import OfficialHeritageLinks from './OfficialHeritageLinks';
 import SearchRankPanel from './SearchRankPanel';
 import TopicCollectionsGrid from './TopicCollectionsGrid';
@@ -173,6 +174,8 @@ export default function MapShell() {
   const [isViewportLoading, setIsViewportLoading] = useState(false);
   const [resetKey, setResetKey] = useState(0);
   const [rankRefreshToken, setRankRefreshToken] = useState(0);
+  const [activeMobileTab, setActiveMobileTab] = useState<'map' | 'discover' | 'profile'>('map');
+  const [userRefreshKey, setUserRefreshKey] = useState(0);
   const lastNearbyKeyRef = useRef<string | null>(null);
   const lastViewportKeyRef = useRef<string | null>(null);
   const viewportResultCacheRef = useRef<Map<string, MarkerPoint[]>>(new Map());
@@ -550,7 +553,53 @@ export default function MapShell() {
 
   return (
     <div className="map-page">
-      <div className="map-shell">
+      {/* 手机端底部 Tab 栏 */}
+      <nav className="mobile-bottom-tabs" aria-label="导航标签">
+        <button
+          type="button"
+          className={`mobile-tab-btn ${activeMobileTab === 'map' ? 'active' : ''}`}
+          onClick={() => setActiveMobileTab('map')}
+          aria-current={activeMobileTab === 'map' ? 'page' : undefined}
+        >
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21" />
+            <line x1="9" y1="3" x2="9" y2="18" />
+            <line x1="15" y1="6" x2="15" y2="21" />
+          </svg>
+          <span>地图</span>
+        </button>
+        <button
+          type="button"
+          className={`mobile-tab-btn ${activeMobileTab === 'discover' ? 'active' : ''}`}
+          onClick={() => setActiveMobileTab('discover')}
+          aria-current={activeMobileTab === 'discover' ? 'page' : undefined}
+        >
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="10" />
+            <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" />
+          </svg>
+          <span>发现</span>
+        </button>
+        <button
+          type="button"
+          className={`mobile-tab-btn ${activeMobileTab === 'profile' ? 'active' : ''}`}
+          onClick={() => setActiveMobileTab('profile')}
+          aria-current={activeMobileTab === 'profile' ? 'page' : undefined}
+        >
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+            <circle cx="12" cy="7" r="4" />
+          </svg>
+          <span>个人</span>
+        </button>
+      </nav>
+
+      {/* 手机端内容区（根据 Tab 切换） */}
+      <div className="mobile-tab-content">
+
+        {/* ── Tab 1：地图 ── */}
+        <div className={`mobile-map-wrap ${activeMobileTab === 'map' ? '' : 'hidden-mobile'}`}>
+          <div className="map-shell">
       <header className="topbar">
         <div className="brand">
           <div className="brand-identity">
@@ -569,7 +618,7 @@ export default function MapShell() {
           </nav>
         </div>
         <div className="topbar-actions">
-          <UserMenuGate />
+          <UserMenuGate key={userRefreshKey} />
         </div>
       </header>
 
@@ -843,10 +892,29 @@ export default function MapShell() {
 	        )}
       </aside>
       </div>
+      </div>
 
-      <FamousTombCarousel />
-      <TopicCollectionsGrid />
-      <OfficialHeritageLinks />
+        {/* ── Tab 2：发现 ── */}
+        {activeMobileTab === 'discover' && (
+          <div className="discover-tab">
+            <FamousTombCarousel />
+            <TopicCollectionsGrid />
+            <OfficialHeritageLinks />
+          </div>
+        )}
+
+        {/* ── Tab 3：个人 ── */}
+        {activeMobileTab === 'profile' && (
+          <MobileProfilePanel onUserChange={() => setUserRefreshKey((k) => k + 1)} />
+        )}
+      </div>
+
+      {/* 桌面端专属（手机通过 Tab 访问的内容在 mobile-tab-content 内部） */}
+      <div className="desktop-extras">
+        <FamousTombCarousel />
+        <TopicCollectionsGrid />
+        <OfficialHeritageLinks />
+      </div>
 
       <footer className="site-footer">
         <div className="footer-left">

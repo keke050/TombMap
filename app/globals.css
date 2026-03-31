@@ -69,6 +69,22 @@ body {
   padding: 24px;
 }
 
+/* 手机端 Tab 栏和 Tab 内容在桌面端隐藏 */
+.mobile-bottom-tabs,
+.mobile-tab-content,
+.mobile-map-wrap,
+.discover-tab,
+.mobile-profile {
+  display: none;
+}
+
+/* 桌面端专属内容在桌面显示，在手机隐藏 */
+@media (max-width: 720px) {
+  .desktop-extras {
+    display: none;
+  }
+}
+
 .map-shell {
   position: relative;
   display: grid;
@@ -1959,9 +1975,9 @@ body {
     min-width: 0;
   }
 
+  /* Footer — 手机端底部 Tab 栏已替代其功能，故隐藏 */
   .site-footer {
-    grid-template-columns: 1fr;
-    text-align: left;
+    display: none;
   }
 
   .topic-grid {
@@ -2039,8 +2055,89 @@ body {
 /* ─── Mobile (≤720px) ─── */
 @media (max-width: 720px) {
   .map-page {
-    padding: 12px;
-    gap: 10px;
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+    gap: 0;
+    min-height: 100dvh;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  /* 底部 Tab 栏：固定在视口底部，上方留白给内容 */
+  .mobile-bottom-tabs {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: stretch;
+    height: 58px;
+    background: rgba(255, 255, 255, 0.96);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-top: 1px solid rgba(27, 23, 18, 0.1);
+    box-shadow: 0 -4px 20px rgba(26, 20, 15, 0.1);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  .mobile-tab-btn {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    border: none;
+    background: transparent;
+    color: rgba(27, 23, 18, 0.48);
+    cursor: pointer;
+    transition: color 0.2s ease;
+    padding: 6px 0;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .mobile-tab-btn:active {
+    transform: scale(0.95);
+  }
+
+  .mobile-tab-btn.active {
+    color: var(--jade);
+  }
+
+  .mobile-tab-btn svg {
+    width: 24px;
+    height: 24px;
+    flex-shrink: 0;
+  }
+
+  .mobile-tab-btn span {
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1;
+    font-family: var(--font-body), "Noto Serif SC", "Songti SC", serif;
+  }
+
+  /* Tab 内容区：占据除 Tab 栏外的全部空间，可独立滚动 */
+  .mobile-tab-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: visible;
+    gap: 0;
+    padding: 10px 12px;
+    padding-bottom: 70px; /* 留出 Tab 栏高度，避免内容被遮 */
+  }
+
+  /* 地图 Tab 外层包裹 */
+  .mobile-map-wrap {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+  }
+
+  .mobile-map-wrap.hidden-mobile {
+    display: none;
   }
 
   /* 整页纵向滚动：不再用固定视口高度 + 内部滚轮 */
@@ -2425,6 +2522,250 @@ body {
 
   .right-panel .rank-panel .rank-panel-header {
     margin-bottom: 6px;
+  }
+
+  /* 发现 Tab：发现页内部间距 */
+  .discover-tab {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding-bottom: 70px; /* 留出 Tab 栏高度 */
+  }
+
+  .discover-tab .featured-strip {
+    padding: 14px;
+    border-radius: 16px;
+  }
+
+  .discover-tab .featured-strip-title {
+    font-size: 17px;
+  }
+
+  .discover-tab .featured-card {
+    grid-template-columns: 1fr;
+    height: 180px;
+    gap: 12px;
+  }
+
+  .discover-tab .featured-card-image {
+    height: 180px;
+  }
+
+  .discover-tab .topic-strip {
+    padding: 14px;
+    border-radius: 16px;
+  }
+
+  .discover-tab .topic-strip-title {
+    font-size: 17px;
+  }
+
+  .discover-tab .topic-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .discover-tab .topic-card {
+    min-height: 150px;
+    padding: 12px;
+    gap: 8px;
+  }
+
+  .discover-tab .topic-card-title {
+    font-size: 16px;
+  }
+
+  .discover-tab .topic-card-desc {
+    font-size: 12px;
+    -webkit-line-clamp: 2;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .discover-tab .topic-card-members {
+    font-size: 11px;
+  }
+
+  .discover-tab .topic-card-cta {
+    font-size: 12px;
+  }
+
+  .discover-tab .official-links-strip {
+    padding: 14px;
+    border-radius: 16px;
+  }
+
+  .discover-tab .official-links-title {
+    font-size: 17px;
+  }
+
+  .discover-tab .official-links-columns {
+    grid-template-columns: 1fr;
+  }
+
+  .discover-tab .official-links-panel {
+    padding: 10px;
+  }
+
+  .discover-tab .official-links-list {
+    max-height: 180px;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* 个人 Tab：用户信息卡片 + 功能列表 */
+  .mobile-profile {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding-bottom: 70px;
+  }
+
+  .mobile-profile-card {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 16px;
+  }
+
+  .mobile-profile-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .mobile-profile-avatar {
+    width: 56px;
+    height: 56px;
+    border-radius: 16px;
+    overflow: hidden;
+    background: rgba(27, 23, 18, 0.06);
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .mobile-profile-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .mobile-profile-avatar-placeholder {
+    color: rgba(27, 23, 18, 0.38);
+  }
+
+  .mobile-profile-info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .mobile-profile-name {
+    font-size: 17px;
+    font-weight: 700;
+    color: rgba(27, 23, 18, 0.92);
+  }
+
+  .mobile-profile-badge {
+    font-size: 12px;
+    color: rgba(27, 23, 18, 0.55);
+    background: rgba(27, 23, 18, 0.06);
+    border: 1px solid rgba(27, 23, 18, 0.1);
+    padding: 2px 8px;
+    border-radius: 999px;
+    align-self: flex-start;
+  }
+
+  .mobile-profile-skeleton {
+    height: 18px;
+    border-radius: 6px;
+    background: linear-gradient(90deg, rgba(240,233,220,0.4) 25%, rgba(255,255,255,0.8) 50%, rgba(240,233,220,0.4) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.2s ease-in-out infinite;
+  }
+
+  @keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+
+  .mobile-profile-guest {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .mobile-profile-guest .primary-button,
+  .mobile-profile-guest .ghost-button {
+    width: 100%;
+    text-align: center;
+  }
+
+  .mobile-profile-logout {
+    width: 100%;
+  }
+
+  .mobile-profile-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    background: rgba(255, 255, 255, 0.78);
+    border-radius: 16px;
+    padding: 6px 0;
+    box-shadow: var(--shadow-soft);
+    backdrop-filter: blur(12px);
+  }
+
+  .mobile-profile-nav-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    text-decoration: none;
+    color: rgba(27, 23, 18, 0.85);
+    transition: background 0.15s ease;
+    border-radius: 10px;
+    margin: 0 6px;
+  }
+
+  .mobile-profile-nav-item:hover {
+    background: rgba(31, 122, 108, 0.08);
+  }
+
+  .mobile-profile-nav-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
+    background: rgba(31, 122, 108, 0.1);
+    color: var(--jade);
+    flex-shrink: 0;
+  }
+
+  .mobile-profile-nav-label {
+    flex: 1;
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  .mobile-profile-nav-arrow {
+    font-size: 18px;
+    color: rgba(27, 23, 18, 0.3);
+    font-weight: 300;
+  }
+
+  .mobile-profile-footer-note {
+    text-align: center;
+    font-size: 11px;
+    color: rgba(27, 23, 18, 0.45);
+    padding-bottom: 4px;
   }
 
   /* Detail Card */
