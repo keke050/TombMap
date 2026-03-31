@@ -638,8 +638,6 @@ export default function MapShell() {
               <label>古墓关键词</label>
               <input value={keyword} onChange={(e) => setKeyword(e.target.value)} placeholder="如：陵、墓、冢" />
             </div>
-          </div>
-          <div className="search-row">
             <div className="field">
               <label>朝代</label>
               <input
@@ -654,6 +652,8 @@ export default function MapShell() {
                 ))}
               </datalist>
             </div>
+          </div>
+          <div className="search-row">
             <div className="field">
               <label>省份</label>
               <input list="province-options" value={province} onChange={(e) => setProvince(e.target.value)} />
@@ -663,8 +663,6 @@ export default function MapShell() {
                 ))}
               </datalist>
             </div>
-          </div>
-          <div className="search-row">
             <div className="field">
               <label>城市（可选）</label>
               <input value={city} onChange={(e) => setCity(e.target.value)} placeholder="如：西安市" />
@@ -936,11 +934,11 @@ export default function MapShell() {
               <div className="footer-item">邮箱：2783729050@qq.com</div>
               <div className="footer-item">微信：z2783729050</div>
             </div>
-            <div className="footer-qr">
-              <div className="footer-label">微信二维码</div>
-              <Image className="footer-qr-image" src="/author-qr.jpg" alt="作者微信二维码" width={140} height={140} />
-              <div className="footer-note">扫码交流 · 资料共建</div>
-            </div>
+          </div>
+          <div className="footer-qr">
+            <div className="footer-label">微信二维码</div>
+            <Image className="footer-qr-image" src="/author-qr.jpg" alt="作者微信二维码" width={140} height={140} />
+            <div className="footer-note">扫码交流 · 资料共建</div>
           </div>
         </footer>
       </div>

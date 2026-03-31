@@ -131,7 +131,8 @@ body {
 .site-footer {
   grid-column: 1 / -1;
   display: grid;
-  grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr) auto;
+  align-items: start;
   gap: 24px;
   padding: 28px 32px;
   border-radius: var(--radius-lg);
@@ -2298,10 +2299,10 @@ body {
     margin-bottom: 10px;
   }
 
-  /* 检索表单：2 列网格（溢出自动换行） */
+  /* 检索表单：手机 3 列；电脑保持 2 列（由上层媒体查询决定） */
   .panel--search .search-row {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 8px;
     margin-bottom: 8px;
   }
@@ -2851,14 +2852,14 @@ body {
   /* Footer：各 Tab 滚动到底可见；短页时贴底；父级 padding-bottom 避开固定 Tab */
   .mobile-tab-content > .site-footer {
     margin-top: auto;
-    flex-shrink: 0;
   }
 
   .site-footer {
     display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+    align-items: start;
+    gap: 14px;
     padding: 16px;
-    gap: 16px;
-    grid-template-columns: 1fr;
   }
 
   .footer-brand {
@@ -2947,7 +2948,7 @@ body {
   .topic-count { font-size: 10px; }
 
   .panel--search .search-row {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 6px;
     margin-bottom: 6px;
   }
@@ -2966,10 +2967,12 @@ body {
   .map-header-total { padding: 5px 8px; font-size: 11px; }
   .map-header-value { font-size: 16px; }
 
-  .site-footer { padding: 14px; }
+  .site-footer {
+    grid-template-columns: 1fr;
+    padding: 14px;
+  }
   .footer-logo { width: 48px; height: 48px; }
   .footer-title { font-size: 14px; }
-  .footer-qr { display: none; }
 
   .featured-strip { padding: 12px; }
   .featured-strip-title { font-size: 16px; }
@@ -3004,7 +3007,11 @@ body {
 
   .map-province-chip { font-size: 10px; padding: 4px 8px; }
 
-  .site-footer { padding: 12px; gap: 12px; }
+  .site-footer {
+    grid-template-columns: 1fr;
+    padding: 12px;
+    gap: 12px;
+  }
   .footer-brand-text .footer-title { font-size: 14px; }
   .footer-desc { display: none; }
   .footer-right { gap: 10px; }
